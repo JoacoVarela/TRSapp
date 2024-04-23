@@ -78,7 +78,6 @@ public class MainActivity extends AppCompatActivity {
             MappedByteBuffer tfliteModel = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
             tflite = new Interpreter(tfliteModel);
         } catch (Exception e) {
-            System.out.println("No pude cargar el modelo");
             e.printStackTrace();
         }
     }
@@ -106,7 +105,7 @@ public class MainActivity extends AppCompatActivity {
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
 
         ImageAnalysis imageAnalysis = new ImageAnalysis.Builder()
-                .setTargetResolution(new Size(320, 240))
+                .setTargetResolution(new Size(640, 480))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build();
 
@@ -126,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
             long timestamp = image.getImageInfo().getTimestamp();
             hands.send(bitmap, timestamp);
             hands.setResultListener(handsResult -> {
-                System.out.println("handsResult: " + handsResult.multiHandLandmarks());
                 List<Keypoint> keypoints = extractKeypoints(handsResult);
                 if (keypoints != null && !keypoints.isEmpty()) {
                     // Asegurarse de que la secuencia de keypoints tenga el tamaño adecuado
@@ -220,9 +218,8 @@ public class MainActivity extends AppCompatActivity {
 
 
     private List<Keypoint> extractKeypoints(HandsResult handsResult) {
-
         if (handsResult == null || handsResult.multiHandLandmarks().isEmpty()) {
-            Log.e("MediaPipe", "No hands detected %d{handsResult}");
+            Log.e("MediaPipe", "No hands detected");
             return null;
         }
 
@@ -259,7 +256,7 @@ public class MainActivity extends AppCompatActivity {
         byte[] imageBytes = out.toByteArray();
         Bitmap originalBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
         // Reducir el tamaño del bitmap
-        Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.getWidth() / 3, originalBitmap.getHeight() / 3, true);
+        Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.getWidth() / 1, originalBitmap.getHeight() / 1, true);
 
         // Rotar la imagen
         Matrix matrix = new Matrix();
