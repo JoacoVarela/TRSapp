@@ -20,7 +20,6 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
-import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.os.Bundle;
@@ -29,7 +28,6 @@ import android.util.Size;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.example.miultimaprueba.R;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.mediapipe.formats.proto.LandmarkProto;
 import com.google.mediapipe.solutions.hands.Hands;
