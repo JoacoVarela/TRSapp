@@ -26,6 +26,8 @@ import android.graphics.YuvImage;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -56,6 +58,22 @@ public class MainActivity extends AppCompatActivity {
     // Nombres de las clases
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U","V", "W" };
     private ImageView debugImageView;
+
+    private int lensFacing = CameraSelector.LENS_FACING_FRONT;
+
+    ProcessCameraProvider cameraProvider;
+
+    private ImageButton rotateCameraButton;
+
+
+
+    private void switchCamera() {
+        lensFacing = lensFacing == CameraSelector.LENS_FACING_FRONT
+                ? CameraSelector.LENS_FACING_BACK
+                : CameraSelector.LENS_FACING_FRONT;
+        bindCameraUseCases();
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -64,9 +82,18 @@ public class MainActivity extends AppCompatActivity {
         previewView = findViewById(R.id.previewView);
         resultTextView = findViewById(R.id.resultTextView); // Referencia al TextView
         debugImageView = findViewById(R.id.debugImageView);
+        rotateCameraButton = findViewById(R.id.rotateCameraButton);
+
         initializeMediaPipe();
         initializeCamera();
         loadModel(); // Cargar el modelo TensorFlow Lite
+
+        rotateCameraButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                switchCamera();
+            }
+        });
     }
     private void loadModel() {
         try {
@@ -90,15 +117,15 @@ public class MainActivity extends AppCompatActivity {
         ListenableFuture<ProcessCameraProvider> cameraProviderFuture = ProcessCameraProvider.getInstance(this);
         cameraProviderFuture.addListener(() -> {
             try {
-                ProcessCameraProvider cameraProvider = cameraProviderFuture.get();
-                bindCameraUseCases(cameraProvider);
+                cameraProvider = cameraProviderFuture.get();
+                bindCameraUseCases();
             } catch (ExecutionException | InterruptedException e) {
                 Log.e("CameraXApp", "Error al iniciar la cámara", e);
             }
         }, ContextCompat.getMainExecutor(this));
     }
 
-    private void bindCameraUseCases(ProcessCameraProvider cameraProvider) {
+    private void bindCameraUseCases() {
         cameraProvider.unbindAll();
 
         Preview preview = new Preview.Builder().build();
@@ -112,7 +139,7 @@ public class MainActivity extends AppCompatActivity {
         imageAnalysis.setAnalyzer(mediaPipeExecutor, this::analyzeImage);
 
         CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_FRONT)
+                .requireLensFacing(lensFacing)
                 .build();
 
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
