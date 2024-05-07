@@ -14,6 +14,8 @@ import org.tensorflow.lite.Interpreter;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
+
+import android.content.Intent;
 import android.content.res.AssetFileDescriptor;
 import java.io.FileInputStream;
 import android.graphics.Bitmap;
@@ -26,7 +28,9 @@ import android.graphics.YuvImage;
 import android.os.Bundle;
 import android.util.Log;
 import android.util.Size;
+import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -54,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
     // Lista para almacenar las secuencias de keypoints
     private List<List<Keypoint>> secuenciaKeypoints = new ArrayList<>();
     private TextView resultTextView; // Agregado para mostrar resultados
+    private ImageButton backButton;
 
     // Nombres de las clases
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U","V", "W" };
@@ -83,17 +88,38 @@ public class MainActivity extends AppCompatActivity {
         resultTextView = findViewById(R.id.resultTextView); // Referencia al TextView
         debugImageView = findViewById(R.id.debugImageView);
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
-
+        backButton = findViewById(R.id.backButton);
         initializeMediaPipe();
         initializeCamera();
         loadModel(); // Cargar el modelo TensorFlow Lite
-
+        // Establece un listener de clic para el botón de navegación hacia atrás
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Crea un Intent para iniciar HomeActivity
+                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
+                startActivity(intent);
+            }
+        });
         rotateCameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 switchCamera();
             }
         });
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()) {
+            case android.R.id.home:
+                // Crear un Intent para iniciar HomeActivity
+                Intent intent = new Intent(this, HomeActivity.class);
+                startActivity(intent);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
     private void loadModel() {
         try {
