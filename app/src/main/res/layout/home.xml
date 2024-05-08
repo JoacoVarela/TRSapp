@@ -28,10 +28,16 @@
             android:background="@android:color/transparent"
             />
 
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+        <TextView
+            android:id="@+id/centerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TRS"
+            android:fontFamily="@font/opensanssxtrabold"
+            android:textColor="@color/primaryapp"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_weight="1"/>
 
         <ImageButton
             android:id="@+id/settingsButton"
@@ -46,13 +52,49 @@
     </LinearLayout>
 
     <ImageView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="60dp"
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="64dp"
         android:src="@drawable/senia_home"
         app:layout_constraintDimensionRatio="H,364:354"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_bias="0.139"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="72dp"
+        android:src="@drawable/senia_home2"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.923"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="232dp"
+        android:src="@drawable/senia_home3"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.139"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="232dp"
+        android:src="@drawable/senia_home4"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.923"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/navBar"
         tools:ignore="MissingConstraints" />
@@ -61,7 +103,7 @@
         android:id="@+id/title_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="460dp"
+        android:layout_marginTop="448dp"
         android:fontFamily="@font/opensanssxtrabold"
         android:text="@string/traductor_de_lengua_de_se_as"
         android:textAlignment="center"
@@ -77,15 +119,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="16dp"
+        android:layout_marginTop="44dp"
         android:layout_marginEnd="16dp"
         android:backgroundTint="@color/detailsapp"
         android:fontFamily="@font/opensans_sariablesont"
         android:text="Iniciar Traducción"
         android:textColor="@color/primaryapp"
         android:textSize="16dp"
-        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -9,133 +9,106 @@ import androidx.camera.core.Preview;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.view.PreviewView;
 import androidx.core.content.ContextCompat;
+
 import org.tensorflow.lite.Interpreter;
 
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
-
-import android.content.Intent;
-import android.content.res.AssetFileDescriptor;
-import java.io.FileInputStream;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.ImageFormat;
-import android.graphics.Matrix;
-import android.graphics.PointF;
-import android.graphics.Rect;
-import android.graphics.YuvImage;
-import android.os.Bundle;
-import android.util.Log;
-import android.util.Size;
-import android.view.MenuItem;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.TextView;
-
-import com.example.miultimaprueba.R;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.mediapipe.formats.proto.LandmarkProto;
-import com.google.mediapipe.solutions.hands.Hands;
-import com.google.mediapipe.solutions.hands.HandsResult;
-import com.google.mediapipe.solutions.hands.HandsOptions;
-
-import java.io.ByteArrayOutputStream;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.content.Intent;
+import android.content.res.AssetFileDescriptor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
+import android.os.Bundle;
+import android.util.Log;
+import android.util.Size;
+import android.view.MenuItem;
+import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.mediapipe.formats.proto.LandmarkProto;
+import com.google.mediapipe.solutions.hands.Hands;
+import com.google.mediapipe.solutions.hands.HandsOptions;
+import com.google.mediapipe.solutions.hands.HandsResult;
+
 public class MainActivity extends AppCompatActivity {
+
     private PreviewView previewView;
-    private Hands hands;
-    private ExecutorService mediaPipeExecutor;
-    private Interpreter tflite;
-    // Lista para almacenar las secuencias de keypoints
-    private List<List<Keypoint>> secuenciaKeypoints = new ArrayList<>();
-    private TextView resultTextView; // Agregado para mostrar resultados
-    private ImageButton backButton;
-
-    // Nombres de las clases
-    private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U","V", "W" };
+    private TextView resultTextView;
     private ImageView debugImageView;
-
-    private int lensFacing = CameraSelector.LENS_FACING_FRONT;
-
-    ProcessCameraProvider cameraProvider;
-
+    private ImageButton backButton;
     private ImageButton rotateCameraButton;
 
+    private Hands hands;
+    private Interpreter tflite;
+    private ExecutorService mediaPipeExecutor;
+    private List<List<Keypoint>> secuenciaKeypoints = new ArrayList<>();
 
-
-    private void switchCamera() {
-        lensFacing = lensFacing == CameraSelector.LENS_FACING_FRONT
-                ? CameraSelector.LENS_FACING_BACK
-                : CameraSelector.LENS_FACING_FRONT;
-        bindCameraUseCases();
-    }
+    private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U", "V", "W"};
+    private int lensFacing = CameraSelector.LENS_FACING_FRONT;
+    private ProcessCameraProvider cameraProvider;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        // Inicializar vistas
+
         previewView = findViewById(R.id.previewView);
-        resultTextView = findViewById(R.id.resultTextView); // Referencia al TextView
+        resultTextView = findViewById(R.id.resultTextView);
         debugImageView = findViewById(R.id.debugImageView);
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
+
         initializeMediaPipe();
         initializeCamera();
-        loadModel(); // Cargar el modelo TensorFlow Lite
-        // Establece un listener de clic para el botón de navegación hacia atrás
-        backButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Crea un Intent para iniciar HomeActivity
-                Intent intent = new Intent(MainActivity.this, HomeActivity.class);
-                startActivity(intent);
-            }
-        });
-        rotateCameraButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                switchCamera();
-            }
-        });
+        loadModel();
+
+        backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
+        rotateCameraButton.setOnClickListener(v -> switchCamera());
     }
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()) {
-            case android.R.id.home:
-                // Crear un Intent para iniciar HomeActivity
-                Intent intent = new Intent(this, HomeActivity.class);
-                startActivity(intent);
-                return true;
-            default:
-                return super.onOptionsItemSelected(item);
+        if (item.getItemId() == android.R.id.home) {
+            startActivity(new Intent(this, HomeActivity.class));
+            return true;
         }
+        return super.onOptionsItemSelected(item);
     }
+
     private void loadModel() {
         try {
-            AssetFileDescriptor fileDescriptor = this.getAssets().openFd("Modelo.tflite");
+            AssetFileDescriptor fileDescriptor = getAssets().openFd("Modelo.tflite");
             FileInputStream inputStream = new FileInputStream(fileDescriptor.getFileDescriptor());
             FileChannel fileChannel = inputStream.getChannel();
             long startOffset = fileDescriptor.getStartOffset();
             long declaredLength = fileDescriptor.getDeclaredLength();
             MappedByteBuffer tfliteModel = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
             tflite = new Interpreter(tfliteModel);
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
     private void initializeMediaPipe() {
-        hands = new Hands(this, HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build());
+        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build();
+        hands = new Hands(this, options);
         mediaPipeExecutor = Executors.newSingleThreadExecutor();
     }
 
@@ -171,39 +144,36 @@ public class MainActivity extends AppCompatActivity {
         cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis);
     }
 
+    private void switchCamera() {
+        lensFacing = lensFacing == CameraSelector.LENS_FACING_FRONT ?
+                CameraSelector.LENS_FACING_BACK : CameraSelector.LENS_FACING_FRONT;
+        bindCameraUseCases();
+    }
+
     private void analyzeImage(@NonNull ImageProxy image) {
-        // Convertir ImageProxy a Bitmap
         Bitmap bitmap = convertImageProxyToBitmap(image);
         if (bitmap != null) {
-            long timestamp = image.getImageInfo().getTimestamp();
-            hands.send(bitmap, timestamp);
+            hands.send(bitmap, image.getImageInfo().getTimestamp());
             hands.setResultListener(handsResult -> {
                 List<Keypoint> keypoints = extractKeypoints(handsResult);
                 if (keypoints != null && !keypoints.isEmpty()) {
-                    // Asegurarse de que la secuencia de keypoints tenga el tamaño adecuado
                     if (secuenciaKeypoints.size() >= 20) {
                         secuenciaKeypoints.remove(0);
                     }
                     secuenciaKeypoints.add(keypoints);
-
                     if (secuenciaKeypoints.size() == 20) {
-                        // Preparar inputBuffer para la inferencia
                         ByteBuffer inputBuffer = convertToByteBuffer(secuenciaKeypoints);
-
-                        // Ejecutar la inferencia con el modelo TensorFlow Lite
                         float[][] output = new float[1][CLASS_NAMES.length];
                         tflite.run(inputBuffer, output);
-
-                        // Mostrar los resultados
                         int predictedClass = argMax(output[0]);
                         float confidence = output[0][predictedClass];
                         runOnUiThread(() -> {
                             debugImageView.setImageBitmap(bitmap);
-                            if (confidence > 0.7) {  // Comprobar si la confianza es mayor al 90%
+                            if (confidence > 0.7) {
                                 String resultText = CLASS_NAMES[predictedClass] + " - Confianza: " + confidence;
                                 resultTextView.setText(resultText);
                             } else {
-                                resultTextView.setText(""); // Limpiar el texto si la confianza es baja
+                                resultTextView.setText("");
                             }
                         });
                     }
@@ -213,15 +183,17 @@ public class MainActivity extends AppCompatActivity {
         image.close();
     }
 
-    private void processOutput(float[][] output) {
-        // Asumiendo que output es un array 2D donde output[0] contiene las probabilidades de cada clase
-        for (int i = 0; i < output[0].length; i++) {
-            Log.d("Inferencia", "Clase " + i + ": " + output[0][i] * 100 + "%");
+    private ByteBuffer convertToByteBuffer(List<List<Keypoint>> secuencia) {
+        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(20 * 21 * 3 * Float.BYTES);
+        byteBuffer.order(ByteOrder.nativeOrder());
+        for (List<Keypoint> frame : secuencia) {
+            for (Keypoint keypoint : frame) {
+                byteBuffer.putFloat(keypoint.x);
+                byteBuffer.putFloat(keypoint.y);
+                byteBuffer.putFloat(keypoint.z);
+            }
         }
-
-        // Encuentra el índice de la clase con la probabilidad más alta
-        int maxIndex = argMax(output[0]);
-        Log.d("Inferencia", "Clase predicha: " + maxIndex + " con una confianza de " + output[0][maxIndex] * 100 + "%");
+        return byteBuffer;
     }
 
     private int argMax(float[] elements) {
@@ -235,44 +207,10 @@ public class MainActivity extends AppCompatActivity {
         }
         return maxIndex;
     }
-    private ByteBuffer convertToByteBuffer(List<List<Keypoint>> secuencia) {
-        ByteBuffer byteBuffer = ByteBuffer.allocateDirect(1 * 20 * 63 * 4); // Para float utiliza 4 bytes
-        byteBuffer.order(ByteOrder.nativeOrder());
-        for (List<Keypoint> frame : secuencia) {
-            for (Keypoint keypoint : frame) {
-                byteBuffer.putFloat(keypoint.x);
-                byteBuffer.putFloat(keypoint.y);
-                byteBuffer.putFloat(keypoint.z);
-            }
-        }
-        return byteBuffer;
-    }
-    private float[][] keypointsToArray(List<Keypoint> keypoints) {
-        float[][] array = new float[1][63]; // 21 keypoints * 3 valores (x, y, z)
-        int index = 0;
-        for (Keypoint point : keypoints) {
-            array[0][index++] = point.x;
-            array[0][index++] = point.y;
-            array[0][index++] = point.z;
-        }
-        return array;
-    }
-    public class Keypoint {
-        public float x;
-        public float y;
-        public float z;
-
-        public Keypoint(float x, float y, float z) {
-            this.x = x;
-            this.y = y;
-            this.z = z;
-        }
-    }
-
 
     private List<Keypoint> extractKeypoints(HandsResult handsResult) {
         if (handsResult == null || handsResult.multiHandLandmarks().isEmpty()) {
-            Log.e("MediaPipe", "No hands detected");
+            Log.e("MediaPipe", "No se detectaron manos");
             return null;
         }
 
@@ -285,7 +223,6 @@ public class MainActivity extends AppCompatActivity {
         return keypoints;
     }
 
-
     private Bitmap convertImageProxyToBitmap(ImageProxy image) {
         ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
         ByteBuffer uBuffer = image.getPlanes()[1].getBuffer();
@@ -297,7 +234,6 @@ public class MainActivity extends AppCompatActivity {
 
         byte[] nv21 = new byte[ySize + uSize + vSize];
 
-        // U and V are swapped
         yBuffer.get(nv21, 0, ySize);
         vBuffer.get(nv21, ySize, vSize);
         uBuffer.get(nv21, ySize + vSize, uSize);
@@ -308,15 +244,14 @@ public class MainActivity extends AppCompatActivity {
 
         byte[] imageBytes = out.toByteArray();
         Bitmap originalBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.length);
-        // Reducir el tamaño del bitmap
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.getWidth() / 1, originalBitmap.getHeight() / 1, true);
 
-        // Rotar la imagen
         Matrix matrix = new Matrix();
         matrix.postRotate(-90);
         matrix.postScale(-1, 1);
         return Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
     }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -326,7 +261,18 @@ public class MainActivity extends AppCompatActivity {
         if (tflite != null) {
             tflite.close();
         }
-
     }
 
+    // Clase interna para representar keypoints
+    public static class Keypoint {
+        public float x;
+        public float y;
+        public float z;
+
+        public Keypoint(float x, float y, float z) {
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+    }
 }
