@@ -6,8 +6,6 @@ import android.view.View;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.miultimaprueba.MainActivity;
-import com.example.miultimaprueba.R;
 
 public class HomeActivity extends AppCompatActivity {
     @Override
