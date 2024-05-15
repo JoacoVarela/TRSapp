@@ -26,16 +26,11 @@ public class MainActivity extends AppCompatActivity {
 
     private PreviewView previewView;
     private TextView resultTextView;
-    private ImageView debugImageView;
     private ImageButton backButton;
     private ImageButton rotateCameraButton;
-    private Hands hands;
-    private Interpreter tflite;
     private ExecutorService executorService;
-    private List<List<Keypoint>> secuenciaKeypoints = new ArrayList<>();
     private CameraManager cameraManager;
     private ModelLoader modelLoader;
-    private MediaPipeManager mediaPipeManager;
     private ImageAnalyzer imageAnalyzer;
 
     @Override
@@ -45,14 +40,12 @@ public class MainActivity extends AppCompatActivity {
 
         previewView = findViewById(R.id.previewView);
         resultTextView = findViewById(R.id.resultTextView);
-        debugImageView = findViewById(R.id.debugImageView);
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
-        modelLoader = new ModelLoader(this, "Modelo.tflite", tflite);
+        modelLoader = new ModelLoader(this, "Modelo.tflite");
         initializeMediaPipe();
-        imageAnalyzer = new ImageAnalyzer(tflite, this, hands, resultTextView, debugImageView);
+        imageAnalyzer = new ImageAnalyzer(modelLoader.getTfLite(), this, resultTextView);
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
-        mediaPipeManager = new MediaPipeManager(this,imageAnalyzer::analyzeImage, executorService, hands);
         initializeCamera();
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
         rotateCameraButton.setOnClickListener(v -> cameraManager.switchCamera(this));
@@ -69,7 +62,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void initializeMediaPipe() {
         HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build();
-        hands = new Hands(this, options);
+        imageAnalyzer.setHands(this, options);
         executorService = Executors.newSingleThreadExecutor();
     }
 
@@ -84,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
         if (executorService != null && !executorService.isShutdown()) {
             executorService.shutdown();
         }
-        if (tflite != null) {
-            tflite.close();
+        if (modelLoader.getTfLite() != null) {
+            modelLoader.getTfLite().close();
         }
     }
 }

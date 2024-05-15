@@ -5,6 +5,7 @@ import androidx.annotation.NonNull;
 import androidx.camera.core.ImageProxy;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 
 import com.google.mediapipe.formats.proto.LandmarkProto;
 import com.google.mediapipe.solutions.hands.Hands;
+import com.google.mediapipe.solutions.hands.HandsOptions;
 import com.google.mediapipe.solutions.hands.HandsResult;
 
 import org.tensorflow.lite.Interpreter;
@@ -34,14 +36,11 @@ public class ImageAnalyzer {
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U", "V", "W"};
     private Hands hands;
     private TextView resultTextView;
-    private ImageView debugImageView;
 
-    public ImageAnalyzer(Interpreter tflite, Activity activity, Hands hands, TextView resultTextView, ImageView debugImageView) {
+    public ImageAnalyzer(Interpreter tflite, Activity activity, TextView resultTextView) {
         this.tflite = tflite;
         this.activity = activity;
-        this.hands = hands;
         this.resultTextView = resultTextView;
-        this.debugImageView = debugImageView;
     }
 
     private ByteBuffer convertToByteBuffer(List<List<Keypoint>> secuencia) {
@@ -131,7 +130,6 @@ public class ImageAnalyzer {
                         int predictedClass = argMax(output[0]);
                         float confidence = output[0][predictedClass];
                         activity.runOnUiThread(() -> {
-                            debugImageView.setImageBitmap(bitmap);
                             if (confidence > 0.7) {
                                 String resultText = CLASS_NAMES[predictedClass] + " - Confianza: " + confidence;
                                 resultTextView.setText(resultText);
@@ -144,6 +142,13 @@ public class ImageAnalyzer {
             });
         }
         image.close();
+    }
+
+    public  void setHands(Context context, HandsOptions options) {
+       this.hands = new Hands(context, options);
+    }
+    public  Hands getHands() {
+        return this.hands;
     }
 }
 

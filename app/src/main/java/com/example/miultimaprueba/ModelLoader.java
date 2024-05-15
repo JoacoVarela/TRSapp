@@ -13,8 +13,7 @@ import java.nio.channels.FileChannel;
 public class ModelLoader {
     private Interpreter tflite;
 
-    public ModelLoader(Context context, String modelFileName, Interpreter tflite) {
-        this.tflite = tflite;
+    public ModelLoader(Context context, String modelFileName) {
         loadModel(context, modelFileName);
     }
 
@@ -26,11 +25,18 @@ public class ModelLoader {
             long startOffset = fileDescriptor.getStartOffset();
             long declaredLength = fileDescriptor.getDeclaredLength();
             MappedByteBuffer tfliteModel = fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength);
-            this.tflite = new Interpreter(tfliteModel);
+            setTfLite(tfliteModel);
             System.out.println("Cargue el modelo");
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public Interpreter setTfLite(MappedByteBuffer tfliteModel){
+      return this.tflite = new Interpreter(tfliteModel);
+    }
+    public Interpreter getTfLite(){
+        return this.tflite;
     }
 }
 
