@@ -1,4 +1,4 @@
-package com.example.miultimaprueba;
+package com.example.TRSapp;
 
 
 import androidx.annotation.NonNull;
@@ -13,7 +13,6 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.util.Log;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.mediapipe.formats.proto.LandmarkProto;

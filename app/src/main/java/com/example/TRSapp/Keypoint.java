@@ -1,4 +1,4 @@
-package com.example.miultimaprueba;
+package com.example.TRSapp;
 
 public class Keypoint {
     public float x;

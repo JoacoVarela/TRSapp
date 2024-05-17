@@ -1,4 +1,4 @@
-package com.example.miultimaprueba;
+package com.example.TRSapp;
 import android.content.Context;
 import android.util.Log;
 import androidx.camera.core.CameraSelector;
