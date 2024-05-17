@@ -38,13 +38,26 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // Inicializa los elementos de la UI
         previewView = findViewById(R.id.previewView);
         resultTextView = findViewById(R.id.resultTextView);
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
+
+        // Verifica que los elementos de la UI no sean nulos
+        if (previewView == null || resultTextView == null || rotateCameraButton == null || backButton == null) {
+            throw new RuntimeException("Error: uno o más elementos de la UI no se han inicializado correctamente.");
+        }
+
+        // Inicializa el modelo y obtén el intérprete
         modelLoader = new ModelLoader(this, "Modelo.tflite");
+         Interpreter tflite = modelLoader.getTfLite();
+        if (tflite == null) {
+            throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
+        }
+        imageAnalyzer = new ImageAnalyzer(tflite, this, resultTextView);
         initializeMediaPipe();
-        imageAnalyzer = new ImageAnalyzer(modelLoader.getTfLite(), this, resultTextView);
+        executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
         initializeCamera();
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
@@ -63,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
     private void initializeMediaPipe() {
         HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build();
         imageAnalyzer.setHands(this, options);
-        executorService = Executors.newSingleThreadExecutor();
     }
 
     private void initializeCamera() {
