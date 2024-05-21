@@ -137,6 +137,14 @@ public class ImageAnalyzer {
                             }
                         });
                     }
+                }else {
+                    System.out.println("Manos no detectadas");
+                    if (resultTextView.getText().length() > 0) {
+                        char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
+                        if (lastCharacter != ' ') {
+                            resultTextView.append(" ");
+                        }
+                    }
                 }
             });
         }
