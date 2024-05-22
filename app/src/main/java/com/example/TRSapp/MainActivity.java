@@ -4,24 +4,39 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import androidx.camera.view.PreviewView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import org.tensorflow.lite.Interpreter;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import android.Manifest;
+import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.InputType;
 import android.view.MenuItem;
+import android.view.ViewGroup;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import android.view.View;
 
 import com.google.mediapipe.solutions.hands.HandsOptions;
 
 public class MainActivity extends AppCompatActivity {
 
+    private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
     private PreviewView previewView;
-    private TextView resultTextView;
+    private EditText resultTextView;
+    private ConstraintLayout mainLayout;
     private ImageButton backButton;
     private ImageButton rotateCameraButton;
     private ExecutorService executorService;
@@ -55,9 +70,61 @@ public class MainActivity extends AppCompatActivity {
         initializeMediaPipe();
         executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
-        initializeCamera();
+
+        // Solicita permisos de cámara si no están concedidos
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
+        } else {
+            initializeCamera();
+        }
+
+        resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE);
+        resultTextView.setImeOptions(EditorInfo.IME_ACTION_DONE);
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
         rotateCameraButton.setOnClickListener(v -> cameraManager.switchCamera(this));
+
+        mainLayout = findViewById(R.id.mainLayout);
+
+        setupUI(mainLayout);
+    }
+
+
+    private void setupUI(View view) {
+        // Set up touch listener for non-text box views to hide keyboard.
+        if (!(view instanceof EditText)) {
+            view.setOnTouchListener((v, event) -> {
+                hideSoftKeyboard();
+                resultTextView.clearFocus();
+                return false;
+            });
+        }
+
+        // If a layout container, iterate over children and seed recursion.
+        if (view instanceof ViewGroup) {
+            for (int i = 0; i < ((ViewGroup) view).getChildCount(); i++) {
+                View innerView = ((ViewGroup) view).getChildAt(i);
+                setupUI(innerView);
+            }
+        }
+    }
+
+    private void hideSoftKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        if (getCurrentFocus() != null) {
+            imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+        }
+    }
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == CAMERA_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permiso concedido, inicializa la cámara
+                initializeCamera();
+            } else {
+                // Permiso denegado, muestra un mensaje
+                Toast.makeText(this, "Cámara denegada. La aplicación no puede funcionar sin este permiso.", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     @Override

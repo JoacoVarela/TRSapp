@@ -13,6 +13,7 @@ import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.util.Log;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.google.mediapipe.formats.proto.LandmarkProto;
@@ -34,9 +35,9 @@ public class ImageAnalyzer {
     private List<List<Keypoint>> secuenciaKeypoints = new ArrayList<>();
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "I", "K", "L", "M", "N", "O", "P", "R", "T", "U", "V", "W"};
     private Hands hands;
-    private TextView resultTextView;
+    private EditText resultTextView;
 
-    public ImageAnalyzer(Interpreter tflite, Activity activity, TextView resultTextView) {
+    public ImageAnalyzer(Interpreter tflite, Activity activity, EditText resultTextView) {
         this.tflite = tflite;
         this.activity = activity;
         this.resultTextView = resultTextView;
@@ -113,7 +114,7 @@ public class ImageAnalyzer {
 
     public void analyzeImage(@NonNull ImageProxy image) {
         Bitmap bitmap = convertImageProxyToBitmap(image);
-        if (bitmap != null) {
+        if (bitmap != null && !resultTextView.hasFocus()) {
             hands.send(bitmap, image.getImageInfo().getTimestamp());
             hands.setResultListener(handsResult -> {
                 List<Keypoint> keypoints = extractKeypoints(handsResult);
@@ -137,7 +138,7 @@ public class ImageAnalyzer {
                             }
                         });
                     }
-                }else {
+                } else {
                     System.out.println("Manos no detectadas");
                     if (resultTextView.getText().length() > 0) {
                         char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
