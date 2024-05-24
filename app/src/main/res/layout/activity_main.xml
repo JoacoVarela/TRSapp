@@ -16,7 +16,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-
         <ImageButton
             android:layout_gravity="center"
             android:id="@+id/backButton"
@@ -26,14 +25,9 @@
             android:layout_margin="16dp"
             android:background="@android:color/transparent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            />
-
+            app:layout_constraintTop_toTopOf="parent" />
     </LinearLayout>
 
-
-
-    <!-- ImageView para mostrar la imagen seleccionada -->
     <FrameLayout
         android:id="@+id/frameCardView"
         android:layout_width="0dp"
@@ -45,10 +39,7 @@
         android:background="@android:color/black"
         android:paddingTop="2dp"
         android:paddingBottom="2dp"
-        android:layout_marginTop="60dp"
-        >
-
-
+        android:layout_marginTop="60dp">
 
         <androidx.cardview.widget.CardView
             android:id="@+id/cardView"
@@ -89,15 +80,11 @@
                         android:src="@drawable/baseline_360_24"
                         android:layout_gravity="center"
                         android:background="@color/primaryapp" />
-
                 </androidx.cardview.widget.CardView>
-
             </FrameLayout>
-
-
         </androidx.cardview.widget.CardView>
-
     </FrameLayout>
+
     <FrameLayout
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -111,16 +98,16 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/primaryapp"
-            android:gravity="start"
+            android:gravity="start|top"
             android:padding="16dp"
             android:fontFamily="@font/opensans_sariablesont"
             android:textColor="@android:color/black"
-            android:textSize="18sp"/>
-<!--            android:inputType="text|textAutoCorrect|textAutoComplete"-->
-<!--            android:imeOptions="actionDone"-->
-
+            android:textSize="18sp"
+            android:inputType="textMultiLine|text"
+            android:scrollHorizontally="false"
+            android:singleLine="false"
+            android:overScrollMode="never"
+            android:imeOptions="flagNoExtractUi|actionDone"
+            />
     </FrameLayout>
-
-
-
 </androidx.constraintlayout.widget.ConstraintLayout>
