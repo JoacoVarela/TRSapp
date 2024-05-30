@@ -61,12 +61,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Inicializa el modelo y obtén el intérprete
-        modelLoader = new ModelLoader(this, "Modelo.tflite");
+        modelLoader = new ModelLoader(this, "Modelo.tflite", "Modelo1.tflite");
          Interpreter tflite = modelLoader.getTfLite();
+         Interpreter tflite1 = modelLoader.getTfLite1();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
-        imageAnalyzer = new ImageAnalyzer(tflite, this, resultTextView);
+        imageAnalyzer = new ImageAnalyzer(tflite , tflite1 , this, resultTextView);
         initializeMediaPipe();
         executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
@@ -154,6 +155,9 @@ public class MainActivity extends AppCompatActivity {
         }
         if (modelLoader.getTfLite() != null) {
             modelLoader.getTfLite().close();
+        }
+        if (modelLoader.getTfLite1() != null) {
+            modelLoader.getTfLite1().close();
         }
     }
 }

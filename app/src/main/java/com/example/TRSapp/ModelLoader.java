@@ -12,9 +12,10 @@ import java.nio.channels.FileChannel;
 
 public class ModelLoader {
     private Interpreter tflite;
-
-    public ModelLoader(Context context, String modelFileName) {
+    private Interpreter tflite1;
+    public ModelLoader(Context context, String modelFileName, String modelFileName1) {
         loadModel(context, modelFileName);
+        loadModel1(context, modelFileName1);
     }
 
     private void loadModel(Context context, String modelFileName) {
@@ -31,12 +32,33 @@ public class ModelLoader {
             e.printStackTrace();
         }
     }
-
+    private void loadModel1(Context context, String modelFileName1) {
+        try {
+            AssetFileDescriptor fileDescriptor1 = context.getAssets().openFd(modelFileName1);
+            FileInputStream inputStream1 = new FileInputStream(fileDescriptor1.getFileDescriptor());
+            FileChannel fileChannel1 = inputStream1.getChannel();
+            long startOffset1 = fileDescriptor1.getStartOffset();
+            long declaredLength1 = fileDescriptor1.getDeclaredLength();
+            MappedByteBuffer tfliteModel1 = fileChannel1.map(FileChannel.MapMode.READ_ONLY, startOffset1, declaredLength1);
+            setTfLite1(tfliteModel1);
+            tflite1 = new Interpreter(tfliteModel1);
+            System.out.println("Cargue el modelo11");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
     public Interpreter setTfLite(MappedByteBuffer tfliteModel){
       return this.tflite = new Interpreter(tfliteModel);
     }
     public Interpreter getTfLite(){
         return this.tflite;
+    }
+
+    public Interpreter setTfLite1(MappedByteBuffer tfliteModel1){
+        return this.tflite1 = new Interpreter(tfliteModel1);
+    }
+    public Interpreter getTfLite1(){
+        return this.tflite1;
     }
 }
 
