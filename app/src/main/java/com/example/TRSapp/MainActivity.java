@@ -52,6 +52,10 @@ public class MainActivity extends AppCompatActivity {
         // Inicializa los elementos de la UI
         previewView = findViewById(R.id.previewView);
         resultTextView = findViewById(R.id.resultTextView);
+        resultTextView.setHorizontallyScrolling(false);
+        resultTextView.setSingleLine(false);
+        resultTextView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI); // Asegúrate de no usar IME_ACTION_DONE si necesitas el botón de Enter
+        resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
 
@@ -79,8 +83,7 @@ public class MainActivity extends AppCompatActivity {
             initializeCamera();
         }
 
-        resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_AUTO_CORRECT | InputType.TYPE_TEXT_FLAG_AUTO_COMPLETE);
-        resultTextView.setImeOptions(EditorInfo.IME_ACTION_DONE);
+
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
         rotateCameraButton.setOnClickListener(v -> cameraManager.switchCamera(this));
 
