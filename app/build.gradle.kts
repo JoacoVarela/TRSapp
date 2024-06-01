@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "com.example.miultimaprueba"
+    namespace = "com.example.TRSapp"
     compileSdk = 34
 
     defaultConfig {
-        applicationId = "com.example.miultimaprueba"
+        applicationId = "com.example.TRSapp"
         minSdk = 21
         targetSdk = 34
         versionCode = 1

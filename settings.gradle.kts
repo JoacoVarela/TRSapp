@@ -14,6 +14,6 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MiUltimaPrueba"
+rootProject.name = "TRSapp"
 include(":app")
  

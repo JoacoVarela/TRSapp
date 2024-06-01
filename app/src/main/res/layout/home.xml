@@ -1,6 +1,134 @@
-<?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".HomeActivity"
+    android:background="@color/primaryapp">
+
+    <LinearLayout
+        android:id="@+id/navBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@color/detailsapp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <ImageButton
+            android:id="@+id/hamburgerButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/hamburger_menu"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:background="@android:color/transparent"
+            />
+
+        <TextView
+            android:id="@+id/centerText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TRS"
+            android:fontFamily="@font/opensanssxtrabold"
+            android:textColor="@color/primaryapp"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:layout_weight="1"/>
+
+        <ImageButton
+            android:id="@+id/settingsButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/settings"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            />
+
+    </LinearLayout>
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="64dp"
+        android:src="@drawable/senia_home"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.139"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="72dp"
+        android:src="@drawable/senia_home2"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.923"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="232dp"
+        android:src="@drawable/senia_home3"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.139"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <ImageView
+        android:layout_width="203dp"
+        android:layout_height="186dp"
+        android:layout_marginTop="232dp"
+        android:src="@drawable/senia_home4"
+        app:layout_constraintDimensionRatio="H,364:354"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.923"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/title_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="448dp"
+        android:fontFamily="@font/opensanssxtrabold"
+        android:text="@string/traductor_de_lengua_de_se_as"
+        android:textAlignment="center"
+        android:textColor="@color/detailsapp"
+        android:textSize="35dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/navBar" />
+
+    <Button
+        android:id="@+id/iniciarTraduccionButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="44dp"
+        android:layout_marginEnd="16dp"
+        android:backgroundTint="@color/detailsapp"
+        android:fontFamily="@font/opensans_sariablesont"
+        android:text="Iniciar Traducción"
+        android:textColor="@color/primaryapp"
+        android:textSize="16dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/title_text" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
