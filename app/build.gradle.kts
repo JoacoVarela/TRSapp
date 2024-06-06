@@ -53,5 +53,6 @@ dependencies {
     implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
 
     implementation ("com.google.mediapipe:hands:0.10.9")
+    implementation ("org.jpmml:pmml-evaluator:1.5.16")
 
 }

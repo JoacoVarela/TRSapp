@@ -208,7 +208,7 @@ public class ImageAnalyzer {
                         activity.runOnUiThread(() -> {
                             if (resultTextView.getText().length() > 0) {
                                 secuenciaKeypoints.clear();
-                                framesToSkip = 6;
+                                framesToSkip = 8;
                                 char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
                                 if (lastCharacter != ' ') {
                                     resultTextView.append(" ");
@@ -221,7 +221,56 @@ public class ImageAnalyzer {
         }
         image.close();
     }
+    // Nueva función para normalizar los keypoints
+    private List<Keypoint> normalizarKeypoints(List<Keypoint> keypoints) {
+        float distanciaReferencia = (float) calcularDistancia(keypoints.get(0), keypoints.get(12));
+        List<Keypoint> keypointsNormalizados = new ArrayList<>();
 
+        for (Keypoint keypoint : keypoints) {
+            Keypoint keypointNormalizado = new Keypoint(
+                    keypoint.x / distanciaReferencia,
+                    keypoint.y / distanciaReferencia,
+                    keypoint.z / distanciaReferencia
+            );
+            keypointsNormalizados.add(keypointNormalizado);
+        }
+
+        return keypointsNormalizados;
+    }
+
+    // Nueva función para verificar la diferencia entre keypoints para "U" y "V"
+    private String verificarDiferenciaUV(List<Keypoint> keypoints) {
+        keypoints = normalizarKeypoints(keypoints);  // Normalizar los keypoints
+
+        double distancia_8_12 = calcularDistancia(keypoints.get(8), keypoints.get(12));
+        double distancia_6_10 = calcularDistancia(keypoints.get(5), keypoints.get(9));
+
+        double diferencia = Math.abs(distancia_8_12 - distancia_6_10);
+        double umbral = 0.08;  // Ajusta este valor según sea necesario
+        System.out.println("el umbral es: " + diferencia);
+        if (diferencia > umbral) {
+            return "V";
+        } else {
+            return "U";
+        }
+    }
+    // Nueva función para verificar la diferencia en el eje Z para "T" y "F"
+    private String verificarDiferenciaTF(List<Keypoint> keypoints) {
+        double z_3 = keypoints.get(3).z;
+        double z_4 = keypoints.get(4).z;
+        double z_6 = keypoints.get(6).z;
+        System.out.println("el valor de la coordenada es: " + z_3 + " - " + z_4 +" - "  + z_6);
+        if (z_3 > z_6 || z_4 > z_6) {
+            return "F";
+        } else {
+            return "T";
+        }
+    }
+    // Función para calcular la distancia entre dos keypoints
+    private double calcularDistancia(Keypoint p1, Keypoint p2) {
+        return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
+    }
+    // Modificar la función de inferencia para incluir la verificación
     private void doInference(Interpreter interpreter, String[] classNames, List<Keypoint> keypoints) {
         if (secuenciaKeypoints.size() < 20) {
             return;
@@ -231,27 +280,38 @@ public class ImageAnalyzer {
         float[][] output = new float[1][classNames.length];
         interpreter.run(inputBuffer, output);
         for (int i = 0; i < classNames.length; i++) {
-            Log.d("el Inferencia", "Clase " + classNames[i] + ": " + output[0][i]);
+            Log.d("Inferencia", "Clase " + classNames[i] + ": " + output[0][i]);
         }
         int predictedClass = argMax(output[0]);
         float confidence = output[0][predictedClass];
+
+        String resultText = classNames[predictedClass];
+
+        // Verificación adicional para "U" y "V"
+        if (resultText.equals("U") || resultText.equals("V")) {
+            resultText = verificarDiferenciaUV(keypoints);
+        }
+        // Verificación adicional para "T" y "F"
+        if (resultText.equals("T") || resultText.equals("F")) {
+            resultText = verificarDiferenciaTF(keypoints);
+        }
+        final String finalResultText = resultText;
         activity.runOnUiThread(() -> {
-            if (confidence > 0.75) {
-                String resultText = classNames[predictedClass];
+            if (confidence > 0.85) {
                 secuenciaKeypoints.clear();
                 SonIguales = 0;
                 CantidadNegativo = 0;
                 CantidadPositivo = 0;
-                framesToSkip = 16;
+                framesToSkip = 22;
 
-                if (resultText != null && !resultText.isEmpty()) {
+                if (finalResultText != null && !finalResultText.isEmpty()) {
                     if (resultTextView.getText().length() == 0) {
-                        resultTextView.append(resultText);
+                        resultTextView.append(finalResultText);
                     } else {
                         char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
                         String lastCharacterAsString = String.valueOf(lastCharacter);
-                        if (!lastCharacterAsString.equalsIgnoreCase(resultText)) {
-                            resultTextView.append(resultText.toLowerCase());
+                        if (!lastCharacterAsString.equalsIgnoreCase(finalResultText)) {
+                            resultTextView.append(finalResultText.toLowerCase());
                         }
                     }
                 }
