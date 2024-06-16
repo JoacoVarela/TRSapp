@@ -34,5 +34,10 @@
             android:name=".MainActivity"
             android:exported="true">
         </activity>
+        <activity
+            android:name=".TextConfigActivity"
+            android:exported="true">
+        </activity>
+
     </application>
 </manifest>

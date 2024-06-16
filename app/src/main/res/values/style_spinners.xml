@@ -1,0 +1,19 @@
+<!-- res/values/styles.xml -->
+<resources>
+    <!-- Define the style for the Spinner itself -->
+    <style name="SpinnerStyle">
+        <item name="android:popupBackground">@color/primaryapp</item> <!-- Cambia el color de fondo del popup -->
+    </style>
+
+    <!-- Define the style for the Spinner dropdown items -->
+    <style name="SpinnerDropdownItemStyle">
+        <item name="android:textColor">@color/black</item> <!-- Cambia el color del texto -->
+        <item name="android:background">@color/primaryapp</item> <!-- Cambia el color de fondo -->
+    </style>
+
+    <!-- Define the style for the Spinner selected item -->
+    <style name="SpinnerItemStyle">
+        <item name="android:textColor">@color/black</item> <!-- Cambia el color del texto -->
+        <item name="android:background">@color/primaryapp</item> <!-- Cambia el color de fondo -->
+    </style>
+</resources>

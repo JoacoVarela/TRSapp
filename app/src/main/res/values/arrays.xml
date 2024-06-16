@@ -1,0 +1,27 @@
+<resources>
+    <string-array name="color_options">
+        <item>Negro</item>
+        <item>Rojo</item>
+        <item>Azul</item>
+        <item>Blanco</item>
+        <item>Verde</item>
+        <item>Gris</item>
+        <!-- Agrega más colores según sea necesario -->
+    </string-array>
+    <string-array name="size_options">
+        <item>14sp</item>
+        <item>16sp</item>
+        <item>18sp</item>
+        <item>22sp</item>
+        <item>26sp</item>
+        <item>30sp</item>
+
+        <!-- Agrega más tamaños según sea necesario -->
+    </string-array>
+    <string-array name="typeface_options">
+        <item>Default</item>
+        <item>Serif</item>
+        <item>Monospace</item>
+        <!-- Agrega más tipos de letra según sea necesario -->
+    </string-array>
+</resources>
