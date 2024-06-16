@@ -72,9 +72,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Inicializa el modelo y obtén el intérprete
         modelLoader = new ModelLoader(this, "Modelo.tflite", "Modelo1.tflite", "clasificador_gestos.tflite");
-        Interpreter tflite = modelLoader.getTfLite();
-        Interpreter tflite1 = modelLoader.getTfLite1();
-        Interpreter clasificador = modelLoader.getTfLiteClasificador();
+
+         Interpreter tflite = modelLoader.getTfLite();
+         Interpreter tflite1 = modelLoader.getTfLite1();
+         Interpreter clasificador = modelLoader.getTfLiteClasificador();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
