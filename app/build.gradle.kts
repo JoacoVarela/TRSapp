@@ -51,6 +51,7 @@ dependencies {
     implementation ("androidx.camera:camera-extensions:1.2.3")
     implementation ("org.tensorflow:tensorflow-lite:2.14.0")
     implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
+    implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
     implementation ("com.google.mediapipe:hands:0.10.9")
     implementation ("org.jpmml:pmml-evaluator:1.5.16")
