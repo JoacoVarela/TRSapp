@@ -16,7 +16,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
+import android.text.TextWatcher;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -28,6 +31,12 @@ import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import android.view.View;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.mediapipe.solutions.hands.HandsOptions;
 
 public class MainActivity extends AppCompatActivity {
@@ -42,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
     private CameraManager cameraManager;
     private ModelLoader modelLoader;
     private ImageAnalyzer imageAnalyzer;
+    private DatabaseReference myRef;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +106,13 @@ public class MainActivity extends AppCompatActivity {
 
         mainLayout = findViewById(R.id.mainLayout);
         setupUI(mainLayout);
+
+        FirebaseApp.initializeApp(this);
+
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://translationtextdb-default-rtdb.firebaseio.com/");
+        myRef = database.getReference("translatedText");
+        setupEditTextListener();
+        setupDatabaseListener();
     }
 
     private void setupUI(View view) {
@@ -154,6 +172,48 @@ public class MainActivity extends AppCompatActivity {
     private void initializeCamera() {
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
         cameraManager.initializeCamera(this, previewView, this);
+    }
+
+    private void setupEditTextListener() {
+        resultTextView.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                // No necesitas hacer nada aquí
+            }
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                // Envía el texto a Firebase en tiempo real
+                sendTranslatedText(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {
+                // No necesitas hacer nada aquí
+            }
+        });
+    }
+
+    private void sendTranslatedText(String text) {
+        myRef.setValue(text);
+    }
+
+    private void setupDatabaseListener() {
+        myRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                // Obtén el valor actualizado
+                String translatedText = dataSnapshot.getValue(String.class);
+                System.out.println("TRANSLATEDTEXT>>>>>>>" +translatedText);
+                // Actualiza el TextView con el nuevo texto
+            }
+
+            @Override
+            public void onCancelled(DatabaseError error) {
+                // Manejo de errores
+                Log.e("Firebase", "Error al leer datos", error.toException());
+            }
+        });
     }
 
     @Override

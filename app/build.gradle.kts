@@ -1,5 +1,6 @@
 plugins {
     id("com.android.application")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -55,5 +56,8 @@ dependencies {
 
     implementation ("com.google.mediapipe:hands:0.10.9")
     implementation ("org.jpmml:pmml-evaluator:1.5.16")
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    implementation("com.google.firebase:firebase-database:20.0.3")
+    implementation("com.google.firebase:firebase-analytics")
 
 }
