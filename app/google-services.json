@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "828967163263",
+    "project_id": "translationtextdb",
+    "storage_bucket": "translationtextdb.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:828967163263:android:0c20569e0c9779a638764a",
+        "android_client_info": {
+          "package_name": "com.example.TRSapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAyi4LK2jWAbbALxo4cl_RLA2YDW86u_T8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -7,6 +7,8 @@ import android.widget.ImageButton;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.google.firebase.database.DatabaseReference;
+
 public class HomeActivity extends AppCompatActivity {
     private static final int TEXT_CONFIG_REQUEST_CODE = 1;
     private TextConfig textConfig;
@@ -24,6 +26,13 @@ public class HomeActivity extends AppCompatActivity {
             intent.putExtra("textConfig", textConfig);
             startActivity(intent);
         });
+
+        Button iniciarLecturaTraduccionButton = findViewById(R.id.iniciarLecturaButton);
+        iniciarLecturaTraduccionButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, OnlyTranslateActivity.class);
+            startActivity(intent);
+        });
+
 
         ImageButton settingsButton = findViewById(R.id.settingsButton);
         settingsButton.setOnClickListener(v -> {
