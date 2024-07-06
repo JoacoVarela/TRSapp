@@ -49,6 +49,13 @@ public class ImageAnalyzer {
 
     private double SonIguales = 0;
     private boolean shouldProcessFrames = true;
+    private int activeCamera;
+
+    public void setActiveCamera(int activeCamera) {
+        this.activeCamera = activeCamera;
+        System.out.println("La camara es> " + activeCamera);
+    }
+
     public ImageAnalyzer(Interpreter tflite,Interpreter tflite1, Activity activity, TextView resultTextView) {
         this.tflite = tflite;
         this.tflite1 = tflite1;
@@ -120,8 +127,13 @@ public class ImageAnalyzer {
         Bitmap resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, originalBitmap.getWidth() / 1, originalBitmap.getHeight() / 1, true);
 
         Matrix matrix = new Matrix();
-        matrix.postRotate(-90);
-        matrix.postScale(-1, 1);
+        if (activeCamera == 0) {
+            matrix.postRotate(-90);
+            matrix.postScale(-1, 1); // Espejo horizontal para la cámara frontal
+        } else {
+            matrix.postRotate(90); // Ajusta esto según la orientación de tu cámara trasera
+            matrix.postScale(-1, 1); // Espejo horizontal para la cámara frontal
+        }
         return Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
     }
 
@@ -139,7 +151,7 @@ public class ImageAnalyzer {
             double acceleration = velocity - Math.sqrt(Math.pow(prevKeypoints.get(i).x - lastKeypoints.get(i).x, 2) +
                     Math.pow(prevKeypoints.get(i).y - lastKeypoints.get(i).y, 2) +
                     Math.pow(prevKeypoints.get(i).z - lastKeypoints.get(i).z, 2));
-            if (velocity > 0.20) {
+            if (velocity > 0.50) {
                 System.out.println("el velocityThreshold" + velocity + "accelerationThreshold" + acceleration);
                 secuenciaKeypoints.clear();
                 CantidadNegativo = 0;
@@ -161,7 +173,7 @@ public class ImageAnalyzer {
     private int frameCounter = 0; // Contador de frames
     private int inferenceInterval = 3; // Intervalo de inferencia (ajustable)
     public void analyzeImage(@NonNull ImageProxy image) {
-        if (shouldProcessFrames) {
+       if (shouldProcessFrames) {
             if (framesToSkip > 0) {
                 framesToSkip--;
                 image.close();
@@ -178,24 +190,16 @@ public class ImageAnalyzer {
                         noHandDetectedCount = 0; // Resetear el contador si se detecta una mano
 
                         if (prevKeypoints != null && lastKeypoints != null) {
-                            boolean significantMotion = isSignificantMotion(lastKeypoints, prevKeypoints, keypoints);
-                            boolean extremeMotion = isExtremeMotion(lastKeypoints, prevKeypoints, keypoints);
+                           // boolean significantMotion = isSignificantMotion(lastKeypoints, prevKeypoints, keypoints);
+                          //  boolean extremeMotion = isExtremeMotion(lastKeypoints, prevKeypoints, keypoints);
 
-                            if (extremeMotion) {
+                          /*  if (extremeMotion) {
                                 // Reiniciar la secuencia si se detecta un movimiento extremo
                                 secuenciaKeypoints.clear();
                                 CantidadNegativo = 0;
                                 CantidadPositivo = 0;
                                 framesToSkip = 8; // Opcionalmente puedes saltar algunos frames después de un movimiento extremo
-                            } else {
-                                if (significantMotion) {
-                                    SonIguales += 1.5;
-                                    CantidadPositivo += 1;
-                                } else {
-                                    SonIguales -= 0.75;
-                                    CantidadNegativo += 1;
-                                }
-
+                            } else {*/
                                 secuenciaKeypoints.add(keypoints);
                                 if (secuenciaKeypoints.size() > 20) {
                                     secuenciaKeypoints.remove(0);
@@ -203,21 +207,16 @@ public class ImageAnalyzer {
 
                                 frameCounter++;
                                 if (frameCounter % inferenceInterval == 0) { // Realizar inferencia cada 'inferenceInterval' frames
-                                    if (CantidadPositivo > 9) {
-                                        doInference(tflite, CLASS_NAMES, keypoints);
-                                    } else if (CantidadNegativo > 10) {
-                                        doInference(tflite1, CLASS_NAMES1, keypoints);
-                                    }
+                                    doInference(tflite, CLASS_NAMES, keypoints);
                                     frameCounter = 0;
                                 }
-                            }
+                            //}
 
-                            lastKeypoints = prevKeypoints;
-                            prevKeypoints = keypoints;
-                        } else {
-                            lastKeypoints = prevKeypoints;
-                            prevKeypoints = keypoints;
+
                         }
+                            lastKeypoints = prevKeypoints;
+                            prevKeypoints = keypoints;
+
                     } else {
                         // Si no se detecta una mano
                         Log.e("MediaPipe", "No se detectaron manos");
@@ -243,7 +242,7 @@ public class ImageAnalyzer {
         }
         image.close();
     }
-
+/*
     private boolean isExtremeMotion(List<Keypoint> prevKeypoints, List<Keypoint> currentKeypoints, List<Keypoint> lastKeypoints) {
         float extremeVelocityThreshold = 0.8f;
         float extremeAccelerationThreshold = 0.6f;
@@ -265,7 +264,7 @@ public class ImageAnalyzer {
 
         return extremeMotionDetected;
     }
-
+*/
 
 
     // Nueva función para normalizar los keypoints
@@ -326,42 +325,52 @@ public class ImageAnalyzer {
         ByteBuffer inputBuffer = convertToByteBuffer(secuenciaKeypoints);
         float[][] output = new float[1][classNames.length];
         interpreter.run(inputBuffer, output);
-        for (int i = 0; i < classNames.length; i++) {
+        /*for (int i = 0; i < classNames.length; i++) {
             Log.d("Inferencia", "Clase " + classNames[i] + ": " + output[0][i]);
-        }
+        }*/
 
         int predictedClass = argMax(output[0]);
         float confidence = output[0][predictedClass];
 
         String resultText = classNames[predictedClass];
 
-        // Verificación adicional para "U" y "V"
-        if (resultText.equals("U") || resultText.equals("V")) {
-            resultText = verificarDiferenciaUV(keypoints);
+        switch (resultText) {
+            case "U":
+            case "V":
+                resultText = verificarDiferenciaUV(keypoints);
+                break;
+
+            case "T":
+            case "F":
+                resultText = verificarDiferenciaTF(keypoints);
+                break;
+
+            case "L":
+            case "LL":
+                if (verificarVariacion3Frames(secuenciaKeypoints)) {
+                    resultText = "LL";
+                } else {
+                    resultText = "L";
+                }
+                break;
+
+            case "N":
+            case "NI":
+                if (verificarVariacion3Frames(secuenciaKeypoints)) {
+                    resultText = "Ñ";
+                } else {
+                    resultText = "N";
+                }
+                break;
+
+            default:
+                // Otras acciones si es necesario
+                break;
         }
-        // Verificación adicional para "T" y "F"
-        if (resultText.equals("T") || resultText.equals("F")) {
-            resultText = verificarDiferenciaTF(keypoints);
-        }
-        // Verificación adicional para "L" y "LL"
-        if (resultText.equals("L") || resultText.equals("LL")) {
-            if (verificarVariacion3Frames(secuenciaKeypoints)) {
-                resultText = "LL";
-            } else {
-                resultText = "L";
-            }
-        }
-        // Verificación adicional para "N" y "NI"
-        if (resultText.equals("N") || resultText.equals("NI")) {
-            if (verificarVariacion3Frames(secuenciaKeypoints)) {
-                resultText = "Ñ";
-            } else {
-                resultText = "N";
-            }
-        }
+
         final String finalResultText = resultText;
         activity.runOnUiThread(() -> {
-            if (confidence > 0.35) {
+            if (confidence > 0.50) {
                 secuenciaKeypoints.clear(); // Limpiar secuencia de keypoints al realizar una inferencia correcta
                 SonIguales = 0;
                 CantidadNegativo = 0;

@@ -52,7 +52,7 @@ public class MainActivity extends AppCompatActivity {
     private ModelLoader modelLoader;
     private ImageAnalyzer imageAnalyzer;
     private DatabaseReference myRef;
-
+    private int activeCamera;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
 
         TextConfig textConfig = getIntent().getParcelableExtra("textConfig");
 
-
         if (textConfig != null) {
             textConfig.applyConfig(resultTextView);
         }
@@ -84,13 +83,14 @@ public class MainActivity extends AppCompatActivity {
         // Inicializa el modelo y obtén el intérprete
         modelLoader = new ModelLoader(this, "Modelo.tflite", "Modelo1.tflite", "clasificador_gestos.tflite");
 
-         Interpreter tflite = modelLoader.getTfLite();
-         Interpreter tflite1 = modelLoader.getTfLite1();
-         Interpreter clasificador = modelLoader.getTfLiteClasificador();
+        Interpreter tflite = modelLoader.getTfLite();
+        Interpreter tflite1 = modelLoader.getTfLite1();
+        Interpreter clasificador = modelLoader.getTfLiteClasificador();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
         imageAnalyzer = new ImageAnalyzer(tflite, tflite1, this, resultTextView);
+
         initializeMediaPipe();
         executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
@@ -103,7 +103,11 @@ public class MainActivity extends AppCompatActivity {
         }
 
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
-        rotateCameraButton.setOnClickListener(v -> cameraManager.switchCamera(this));
+        rotateCameraButton.setOnClickListener(v -> {
+            cameraManager.switchCamera(this);
+            // Actualiza el estado de la cámara después de un pequeño retardo para asegurar que la cámara ha cambiado
+            previewView.postDelayed(this::updateCameraState, 500); // Ajusta el tiempo de espera según sea necesario
+        });
 
         mainLayout = findViewById(R.id.mainLayout);
         setupUI(mainLayout);
@@ -171,8 +175,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeCamera() {
-        cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
         cameraManager.initializeCamera(this, previewView, this);
+        updateCameraState();
+    }
+
+    private void updateCameraState() {
+        int newActiveCamera = cameraManager.getActiveCameraFacing();
+        if (activeCamera != newActiveCamera) {
+            activeCamera = newActiveCamera;
+            imageAnalyzer.setActiveCamera(activeCamera);
+            Log.d("MainActivity", "Active camera updated to: " + activeCamera);
+        }
     }
 
     private void setupEditTextListener() {
