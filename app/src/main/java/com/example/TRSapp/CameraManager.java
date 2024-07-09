@@ -61,4 +61,8 @@ public class CameraManager {
         lensFacing = (lensFacing == CameraSelector.LENS_FACING_FRONT) ? CameraSelector.LENS_FACING_BACK : CameraSelector.LENS_FACING_FRONT;
         bindCameraUseCases(lifecycleOwner);
     }
+    public int getActiveCameraFacing() {
+        return lensFacing;
+    }
+
 }
