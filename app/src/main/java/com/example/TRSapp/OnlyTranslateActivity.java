@@ -1,8 +1,13 @@
+// Modulo para manejar la traduccion en tiempo real desde otro dispositivo
 package com.example.TRSapp;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +21,10 @@ import com.google.firebase.database.ValueEventListener;
 
 public class OnlyTranslateActivity extends AppCompatActivity {
 
-    private EditText translatedTextView;
+    private TextView translatedTextView;
     private DatabaseReference myRef;
+    private ImageButton backButton;
+    private Button cleanText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,6 +32,8 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         setContentView(R.layout.activity_only_translate); // Asegúrate de tener el layout correspondiente
 
         translatedTextView = findViewById(R.id.translatedTextView); // Asegúrate de que el ID coincida con el de tu layout
+        backButton = findViewById(R.id.backButton);
+        cleanText = findViewById(R.id.cleanButton);
 
         // Inicializa Firebase
         FirebaseApp.initializeApp(this);
@@ -33,6 +42,20 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         myRef = database.getReference("translatedText");
 
         setupDatabaseListener();
+
+        backButton.setOnClickListener(v -> startActivity(new Intent(OnlyTranslateActivity.this, HomeActivity.class)));
+        cleanText.setOnClickListener(v -> clearDatabase());
+    }
+
+    // Método para limpiar la base de datos
+    private void clearDatabase() {
+        myRef.setValue(null)
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("Firebase", "Datos limpiados exitosamente");
+                    // Limpia el EditText
+                    translatedTextView.setText("");
+                })
+                .addOnFailureListener(e -> Log.e("Firebase", "Error al limpiar datos", e));
     }
 
     private void setupDatabaseListener() {

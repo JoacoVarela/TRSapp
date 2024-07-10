@@ -1,5 +1,5 @@
+// Modulo para manejar la vista de inicio
 package com.example.TRSapp;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;

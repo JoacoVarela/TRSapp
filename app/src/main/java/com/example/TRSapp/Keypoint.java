@@ -1,3 +1,4 @@
+// Modulo para manejar las coordenadas de los puntos clave
 package com.example.TRSapp;
 
 public class Keypoint {
