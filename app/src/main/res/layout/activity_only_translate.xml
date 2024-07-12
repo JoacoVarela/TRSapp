@@ -45,10 +45,21 @@
 
     <Button
         android:id="@+id/cleanButton"
-        android:layout_width="wrap_content"
+        android:layout_width="120dp"
         android:layout_height="wrap_content"
         android:text="Limpiar"
         android:textColor="@color/primaryapp"
         android:layout_gravity="end"/>
+
+    <ImageButton
+        android:id="@+id/speakButton"
+        android:layout_width="105dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_volume_up_24"
+        android:textAlignment="center" />
 
 </LinearLayout>
