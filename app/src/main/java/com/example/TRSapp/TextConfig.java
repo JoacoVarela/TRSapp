@@ -1,3 +1,4 @@
+// Modulo que maneja la configuracuion del texto
 package com.example.TRSapp;
 
 import android.graphics.Color;

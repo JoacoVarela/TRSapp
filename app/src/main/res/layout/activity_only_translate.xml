@@ -5,6 +5,22 @@
     android:orientation="vertical"
     android:padding="16dp"
     android:background="@color/primaryapp">
+
+    <LinearLayout
+        android:id="@+id/navBar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_arrow_back_24"
+            android:layout_margin="16dp"
+            android:background="@android:color/transparent" />
+    </LinearLayout>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -12,10 +28,10 @@
         android:textSize="32sp"
         android:textColor="@color/detailsapp"/>
 
-    <EditText
+    <TextView
         android:id="@+id/translatedTextView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="500dp"
         android:background="@color/primaryapp"
         android:gravity="start|top"
         android:padding="16dp"
@@ -26,4 +42,24 @@
         android:singleLine="false"
         android:overScrollMode="never"
         android:imeOptions="flagNoExtractUi|actionDone"/>
+
+    <Button
+        android:id="@+id/cleanButton"
+        android:layout_width="120dp"
+        android:layout_height="wrap_content"
+        android:text="Limpiar"
+        android:textColor="@color/primaryapp"
+        android:layout_gravity="end"/>
+
+    <ImageButton
+        android:id="@+id/speakButton"
+        android:layout_width="105dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|center"
+        android:layout_marginEnd="8dp"
+        android:layout_marginTop="8dp"
+        android:background="@android:color/transparent"
+        android:src="@drawable/baseline_volume_up_24"
+        android:textAlignment="center" />
+
 </LinearLayout>

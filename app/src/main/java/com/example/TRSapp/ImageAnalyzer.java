@@ -1,3 +1,4 @@
+// Modulo para mmanejar el analizado de la imagen y realizar una prediccion
 package com.example.TRSapp;
 
 
@@ -31,34 +32,28 @@ import java.util.List;
 
 public class ImageAnalyzer {
     private Interpreter tflite;
-    private Interpreter tflite1;
     private Activity activity;
     private List<List<Keypoint>> secuenciaKeypoints = new LinkedList<>();
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "G", "H","I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P", "Q", "R","S", "T", "U", "V", "W", "X", "Y", "Z"};
-    //{ "G",  "J",  "LL",  "Q"};
-    private static final String[] CLASS_NAMES1 = {"A", "B", "C", "D", "E", "F", "G", "H","I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P", "Q", "R","S", "T", "U", "V", "W", "X", "Y", "Z"};
-    //{"A", "B", "C", "D", "E", "F", "G", "I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P","Q", "R", "T", "U", "V", "W","X"};
     private Hands hands;
     private TextView resultTextView;
-
     private List<Keypoint> prevKeypoints = null;
     private List<Keypoint> lastKeypoints = null;
-    private int CantidadNegativo = 0;
-    private int CantidadPositivo = 0;
     private int framesToSkip = 0;
-
-    private double SonIguales = 0;
     private boolean shouldProcessFrames = true;
     private int activeCamera;
+    private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
+    private static final int NO_HAND_DETECTED_THRESHOLD = 2; // Umbral para agregar un espacio
+    private int frameCounter = 0; // Contador de frames
+    private int inferenceInterval = 3; // Intervalo de inferencia (ajustable)
 
     public void setActiveCamera(int activeCamera) {
         this.activeCamera = activeCamera;
         System.out.println("La camara es> " + activeCamera);
     }
 
-    public ImageAnalyzer(Interpreter tflite,Interpreter tflite1, Activity activity, TextView resultTextView) {
+    public ImageAnalyzer(Interpreter tflite, Activity activity, TextView resultTextView) {
         this.tflite = tflite;
-        this.tflite1 = tflite1;
         this.activity = activity;
         this.resultTextView = resultTextView;
     }
@@ -137,41 +132,6 @@ public class ImageAnalyzer {
         return Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
     }
 
-
-    private boolean isSignificantMotion(List<Keypoint> prevKeypoints, List<Keypoint> currentKeypoints, List<Keypoint> lastKeypoints) {
-        float velocityThreshold = 0.04f;
-        float accelerationThreshold = 0.01f;
-        boolean significantMotionDetected = false;
-
-        for (int i = 0; i < currentKeypoints.size(); i++) {
-            double velocity = Math.sqrt(Math.pow(currentKeypoints.get(i).x - prevKeypoints.get(i).x, 2) +
-                    Math.pow(currentKeypoints.get(i).y - prevKeypoints.get(i).y, 2) +
-                    Math.pow(currentKeypoints.get(i).z - prevKeypoints.get(i).z, 2));
-
-            double acceleration = velocity - Math.sqrt(Math.pow(prevKeypoints.get(i).x - lastKeypoints.get(i).x, 2) +
-                    Math.pow(prevKeypoints.get(i).y - lastKeypoints.get(i).y, 2) +
-                    Math.pow(prevKeypoints.get(i).z - lastKeypoints.get(i).z, 2));
-            if (velocity > 0.50) {
-                System.out.println("el velocityThreshold" + velocity + "accelerationThreshold" + acceleration);
-                secuenciaKeypoints.clear();
-                CantidadNegativo = 0;
-                CantidadPositivo = 0;
-                break;
-            }
-            if (Math.abs(velocity) > velocityThreshold || Math.abs(acceleration) > accelerationThreshold) {
-                significantMotionDetected = true;
-                break;
-            }
-        }
-
-        return significantMotionDetected;
-    }
-    private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
-    private static final int NO_HAND_DETECTED_THRESHOLD = 2; // Umbral para agregar un espacio
-
-
-    private int frameCounter = 0; // Contador de frames
-    private int inferenceInterval = 3; // Intervalo de inferencia (ajustable)
     public void analyzeImage(@NonNull ImageProxy image) {
        if (shouldProcessFrames) {
             if (framesToSkip > 0) {
@@ -190,29 +150,15 @@ public class ImageAnalyzer {
                         noHandDetectedCount = 0; // Resetear el contador si se detecta una mano
 
                         if (prevKeypoints != null && lastKeypoints != null) {
-                           // boolean significantMotion = isSignificantMotion(lastKeypoints, prevKeypoints, keypoints);
-                          //  boolean extremeMotion = isExtremeMotion(lastKeypoints, prevKeypoints, keypoints);
-
-                          /*  if (extremeMotion) {
-                                // Reiniciar la secuencia si se detecta un movimiento extremo
-                                secuenciaKeypoints.clear();
-                                CantidadNegativo = 0;
-                                CantidadPositivo = 0;
-                                framesToSkip = 8; // Opcionalmente puedes saltar algunos frames después de un movimiento extremo
-                            } else {*/
                                 secuenciaKeypoints.add(keypoints);
                                 if (secuenciaKeypoints.size() > 20) {
                                     secuenciaKeypoints.remove(0);
                                 }
-
                                 frameCounter++;
                                 if (frameCounter % inferenceInterval == 0) { // Realizar inferencia cada 'inferenceInterval' frames
                                     doInference(tflite, CLASS_NAMES, keypoints);
                                     frameCounter = 0;
                                 }
-                            //}
-
-
                         }
                             lastKeypoints = prevKeypoints;
                             prevKeypoints = keypoints;
@@ -242,30 +188,6 @@ public class ImageAnalyzer {
         }
         image.close();
     }
-/*
-    private boolean isExtremeMotion(List<Keypoint> prevKeypoints, List<Keypoint> currentKeypoints, List<Keypoint> lastKeypoints) {
-        float extremeVelocityThreshold = 0.8f;
-        float extremeAccelerationThreshold = 0.6f;
-        boolean extremeMotionDetected = false;
-
-        for (int i = 0; i < currentKeypoints.size(); i++) {
-            double velocity = Math.sqrt(Math.pow(currentKeypoints.get(i).x - prevKeypoints.get(i).x, 2) +
-                    Math.pow(currentKeypoints.get(i).y - prevKeypoints.get(i).y, 2) +
-                    Math.pow(currentKeypoints.get(i).z - prevKeypoints.get(i).z, 2));
-
-            double acceleration = velocity - Math.sqrt(Math.pow(prevKeypoints.get(i).x - lastKeypoints.get(i).x, 2) +
-                    Math.pow(prevKeypoints.get(i).y - lastKeypoints.get(i).y, 2) +
-                    Math.pow(prevKeypoints.get(i).z - lastKeypoints.get(i).z, 2));
-            if (velocity > extremeVelocityThreshold || Math.abs(acceleration) > extremeAccelerationThreshold) {
-                extremeMotionDetected = true;
-                break;
-            }
-        }
-
-        return extremeMotionDetected;
-    }
-*/
-
 
     // Nueva función para normalizar los keypoints
     private List<Keypoint> normalizarKeypoints(List<Keypoint> keypoints) {
@@ -325,9 +247,6 @@ public class ImageAnalyzer {
         ByteBuffer inputBuffer = convertToByteBuffer(secuenciaKeypoints);
         float[][] output = new float[1][classNames.length];
         interpreter.run(inputBuffer, output);
-        /*for (int i = 0; i < classNames.length; i++) {
-            Log.d("Inferencia", "Clase " + classNames[i] + ": " + output[0][i]);
-        }*/
 
         int predictedClass = argMax(output[0]);
         float confidence = output[0][predictedClass];
@@ -372,9 +291,6 @@ public class ImageAnalyzer {
         activity.runOnUiThread(() -> {
             if (confidence > 0.50) {
                 secuenciaKeypoints.clear(); // Limpiar secuencia de keypoints al realizar una inferencia correcta
-                SonIguales = 0;
-                CantidadNegativo = 0;
-                CantidadPositivo = 0;
                 framesToSkip = 18;
 
                 if (finalResultText != null && !finalResultText.isEmpty()) {
@@ -407,7 +323,7 @@ public class ImageAnalyzer {
             variacionTotal += variacion1 + variacion2;
         }
         System.out.println("la variacion total es: " + variacionTotal);
-        double umbral = 0.3;  // Ajusta este valor según sea necesario
+        double umbral = 0.3;  // Ajustar este valor según sea necesario
         return variacionTotal > umbral;
     }
 
