@@ -170,7 +170,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeMediaPipe() {
-        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build();
+        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(2).build();
         imageAnalyzer.setHands(this, options);
     }
 
