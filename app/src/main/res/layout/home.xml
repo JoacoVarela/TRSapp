@@ -51,101 +51,91 @@
 
     </LinearLayout>
 
-    <ImageView
-        android:layout_width="203dp"
-        android:layout_height="186dp"
-        android:layout_marginTop="64dp"
-        android:src="@drawable/senia_home"
-        app:layout_constraintDimensionRatio="H,364:354"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.139"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/navBar"
-        tools:ignore="MissingConstraints" />
 
-    <ImageView
-        android:layout_width="203dp"
-        android:layout_height="186dp"
-        android:layout_marginTop="72dp"
-        android:src="@drawable/senia_home2"
-        app:layout_constraintDimensionRatio="H,364:354"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.923"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/navBar"
-        tools:ignore="MissingConstraints" />
 
-    <ImageView
-        android:layout_width="203dp"
-        android:layout_height="186dp"
-        android:layout_marginTop="232dp"
-        android:src="@drawable/senia_home3"
-        app:layout_constraintDimensionRatio="H,364:354"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.139"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/navBar"
-        tools:ignore="MissingConstraints" />
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/navBar"
+            android:padding="16dp"
+            android:gravity="center">
 
-    <ImageView
-        android:layout_width="203dp"
-        android:layout_height="186dp"
-        android:layout_marginTop="232dp"
-        android:src="@drawable/senia_home4"
-        app:layout_constraintDimensionRatio="H,364:354"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.923"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/navBar"
-        tools:ignore="MissingConstraints" />
+            <GridLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:columnCount="2"
+                android:orientation="horizontal"
+                android:layout_gravity="center">
 
-    <TextView
-        android:id="@+id/title_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="448dp"
-        android:fontFamily="@font/opensanssxtrabold"
-        android:text="@string/traductor_de_lengua_de_se_as"
-        android:textAlignment="center"
-        android:textColor="@color/detailsapp"
-        android:textSize="35dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/navBar" />
+                <ImageView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:src="@drawable/senia_home"
+                    android:layout_gravity="center"
+                    />
 
-    <Button
-        android:id="@+id/iniciarTraduccionButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="60dp"
-        android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/detailsapp"
-        android:fontFamily="@font/opensans_sariablesont"
-        android:text="Iniciar Traducción"
-        android:textColor="@color/primaryapp"
-        android:textSize="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_text" />
+                <ImageView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:src="@drawable/senia_home2"
+                    />
 
-    <Button
-        android:id="@+id/iniciarLecturaButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/detailsapp"
-        android:fontFamily="@font/opensans_sariablesont"
-        android:text="Iniciar Lectura"
-        android:textColor="@color/primaryapp"
-        android:textSize="16dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/title_text" />
+                <ImageView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:src="@drawable/senia_home3"
+                   />
+
+                <ImageView
+                    android:layout_width="150dp"
+                    android:layout_height="150dp"
+                    android:src="@drawable/senia_home4"
+                 />
+            </GridLayout>
+
+            <TextView
+                android:id="@+id/title_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="@font/opensanssxtrabold"
+                android:gravity="center"
+                android:text="@string/traductor_de_lengua_de_se_as"
+                android:textAlignment="center"
+                android:textColor="@color/detailsapp"
+                android:textSize="35dp" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:orientation="horizontal">
+
+                <Button
+                    android:id="@+id/iniciarTraduccionButton"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:backgroundTint="@color/detailsapp"
+                    android:fontFamily="@font/opensans_sariablesont"
+                    android:text="Iniciar traducción"
+                    android:textColor="@color/primaryapp"
+                    android:textSize="16dp"
+                    android:layout_marginEnd="8dp" />
+
+                <Button
+                    android:id="@+id/iniciarLecturaButton"
+                    android:layout_width="150dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:backgroundTint="@color/detailsapp"
+                    android:fontFamily="@font/opensans_sariablesont"
+                    android:text="Iniciar lectura"
+                    android:textColor="@color/primaryapp"
+                    android:textSize="16dp" />
+            </LinearLayout>
+
+        </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

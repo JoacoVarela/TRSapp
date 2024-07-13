@@ -1,3 +1,4 @@
+// Modulo para el manejo de la camara
 package com.example.TRSapp;
 import android.content.Context;
 import android.util.Log;

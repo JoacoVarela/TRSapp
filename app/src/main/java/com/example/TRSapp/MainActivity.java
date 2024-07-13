@@ -1,3 +1,4 @@
+// Modulo para manejar la vista de traduccion
 package com.example.TRSapp;
 
 import androidx.annotation.NonNull;
@@ -8,6 +9,7 @@ import androidx.core.content.ContextCompat;
 
 import org.tensorflow.lite.Interpreter;
 
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,7 +17,9 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.media.Image;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
@@ -24,6 +28,7 @@ import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
@@ -53,6 +58,10 @@ public class MainActivity extends AppCompatActivity {
     private ImageAnalyzer imageAnalyzer;
     private DatabaseReference myRef;
     private int activeCamera;
+    private Button cleanLastCharacter;
+    private Button cleanText;
+    private TextToSpeech textToSpeech;
+    private ImageButton speakButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +75,31 @@ public class MainActivity extends AppCompatActivity {
         resultTextView.setSingleLine(false);
         resultTextView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
         resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+        speakButton = findViewById(R.id.speakButton);
+
+        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
+            @Override
+            public void onInit(int status) {
+                if (status == TextToSpeech.SUCCESS) {
+                    int result = textToSpeech.setLanguage(new Locale("es", "ES"));
+                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                        Log.e("TTS", "Language not supported");
+                    } else {
+                        speakButton.setEnabled(true);
+                    }
+                } else {
+                    Log.e("TTS", "Initialization failed");
+                }
+            }
+        });
+
+        speakButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String text = resultTextView.getText().toString();
+                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
+        });
 
         TextConfig textConfig = getIntent().getParcelableExtra("textConfig");
 
@@ -74,6 +108,22 @@ public class MainActivity extends AppCompatActivity {
         }
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
+        cleanText = findViewById(R.id.cleanButton);
+        cleanLastCharacter = findViewById(R.id.cleanLastCharacter);
+        cleanLastCharacter.setOnClickListener(v -> {
+            String currentText = resultTextView.getText().toString();
+            if (currentText.length() > 0) {
+                // Eliminar el último carácter del texto actual
+                String newText = currentText.substring(0, currentText.length() - 1);
+                resultTextView.setText(newText);
+
+                // Actualizar la base de datos con el nuevo texto
+                myRef.setValue(newText)
+                        .addOnSuccessListener(aVoid -> Log.i("Firebase", "Texto actualizado exitosamente"))
+                        .addOnFailureListener(e -> Log.e("Firebase", "Error al actualizar texto", e));
+            }
+        });
+        cleanText.setOnClickListener(v -> clearDatabase());
 
         // Verifica que los elementos de la UI no sean nulos
         if (previewView == null || resultTextView == null || rotateCameraButton == null || backButton == null) {
@@ -85,11 +135,10 @@ public class MainActivity extends AppCompatActivity {
 
         Interpreter tflite = modelLoader.getTfLite();
         Interpreter tflite1 = modelLoader.getTfLite1();
-        Interpreter clasificador = modelLoader.getTfLiteClasificador();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
-        imageAnalyzer = new ImageAnalyzer(tflite, tflite1, this, resultTextView);
+        imageAnalyzer = new ImageAnalyzer(tflite, tflite1,this, resultTextView);
 
         initializeMediaPipe();
         executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
@@ -137,6 +186,16 @@ public class MainActivity extends AppCompatActivity {
                 setupUI(innerView);
             }
         }
+    }
+
+    private void clearDatabase() {
+        myRef.setValue(null)
+                .addOnSuccessListener(aVoid -> {
+                    Log.i("Firebase", "Datos limpiados exitosamente");
+                    // Limpia el EditText
+                    resultTextView.setText("");
+                })
+                .addOnFailureListener(e -> Log.e("Firebase", "Error al limpiar datos", e));
     }
 
     private void hideSoftKeyboard() {
@@ -241,6 +300,10 @@ public class MainActivity extends AppCompatActivity {
         }
         if (modelLoader.getTfLite1() != null) {
             modelLoader.getTfLite1().close();
+        }
+        if (textToSpeech != null) {
+            textToSpeech.stop();
+            textToSpeech.shutdown();
         }
     }
 }

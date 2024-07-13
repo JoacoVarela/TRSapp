@@ -42,14 +42,16 @@ public class ImageAnalyzer {
 
     private List<Keypoint> prevKeypoints = null;
     private List<Keypoint> lastKeypoints = null;
-    private int CantidadNegativo = 0;
-    private int CantidadPositivo = 0;
+
     private int framesToSkip = 0;
 
-    private double SonIguales = 0;
     private boolean shouldProcessFrames = true;
     private int activeCamera;
+    private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
+    private static final int NO_HAND_DETECTED_THRESHOLD = 2; // Umbral para agregar un espacio
 
+    private int frameCounter = 0; // Contador de frames
+    private int inferenceInterval = 2; // Intervalo de inferencia (ajustable)
     public void setActiveCamera(int activeCamera) {
         this.activeCamera = activeCamera;
         System.out.println("La camara es> " + activeCamera);
@@ -169,41 +171,6 @@ public class ImageAnalyzer {
         return Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
     }
 
-    private boolean isSignificantMotion(List<Keypoint> prevKeypoints, List<Keypoint> currentKeypoints, List<Keypoint> lastKeypoints) {
-        float velocityThreshold = 0.04f;
-        float accelerationThreshold = 0.01f;
-        boolean significantMotionDetected = false;
-
-        for (int i = 0; i < currentKeypoints.size(); i++) {
-            double velocity = Math.sqrt(Math.pow(currentKeypoints.get(i).x - prevKeypoints.get(i).x, 2) +
-                    Math.pow(currentKeypoints.get(i).y - prevKeypoints.get(i).y, 2) +
-                    Math.pow(currentKeypoints.get(i).z - prevKeypoints.get(i).z, 2));
-
-            double acceleration = velocity - Math.sqrt(Math.pow(prevKeypoints.get(i).x - lastKeypoints.get(i).x, 2) +
-                    Math.pow(prevKeypoints.get(i).y - lastKeypoints.get(i).y, 2) +
-                    Math.pow(prevKeypoints.get(i).z - lastKeypoints.get(i).z, 2));
-            if (velocity > 0.50) {
-                System.out.println("el velocityThreshold" + velocity + "accelerationThreshold" + acceleration);
-                secuenciaKeypointsUnaMano.clear();
-                secuenciaKeypointsDosManos.clear();
-                CantidadNegativo = 0;
-                CantidadPositivo = 0;
-                break;
-            }
-            if (Math.abs(velocity) > velocityThreshold || Math.abs(acceleration) > accelerationThreshold) {
-                significantMotionDetected = true;
-                break;
-            }
-        }
-
-        return significantMotionDetected;
-    }
-
-    private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
-    private static final int NO_HAND_DETECTED_THRESHOLD = 2; // Umbral para agregar un espacio
-
-    private int frameCounter = 0; // Contador de frames
-    private int inferenceInterval = 2; // Intervalo de inferencia (ajustable)
 
     public void analyzeImage(@NonNull ImageProxy image) {
         if (shouldProcessFrames) {
@@ -410,9 +377,6 @@ public class ImageAnalyzer {
                 secuenciaKeypoints.clear(); // Limpiar secuencia de keypoints al realizar una inferencia correcta
                 secuenciaKeypointsDosManos.clear();
                 secuenciaKeypointsUnaMano.clear();
-                SonIguales = 0;
-                CantidadNegativo = 0;
-                CantidadPositivo = 0;
                 framesToSkip = 16;
 
                 if (finalResultText != null && !finalResultText.isEmpty()) {

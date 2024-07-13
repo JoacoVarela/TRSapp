@@ -1,3 +1,4 @@
+// Modulo para manejar la carga del modelo
 package com.example.TRSapp;
 
 import android.app.Activity;

@@ -1,0 +1,18 @@
+
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(€†îÖøÿÿÿÿ
+`	java:S112@"FDefine and throw a dedicated exception instead of using a generic one.(ãÄŠ˜ýÿÿÿÿ
+`	java:S112I"FDefine and throw a dedicated exception instead of using a generic one.(“Žãîüÿÿÿÿ
+t
+java:S1450("YRemove the "backButton" field and declare it as a local variable in the relevant methods.(‡Å›„ûÿÿÿÿ
+o
+java:S1450'"YRemove the "mainLayout" field and declare it as a local variable in the relevant methods.(ÃõöÕ
+v
+java:S1450)"aRemove the "rotateCameraButton" field and declare it as a local variable in the relevant methods.(ßÀë#
+V
+java:S1854G"@Remove this useless assignment to local variable "clasificador".(ó¡å…
+G
+java:S1481G"1Remove this unused "clasificador" local variable.(ó¡å…
+e
+java:S1874z"JDon't override a deprecated method or explicitly mark it as "@Deprecated".(Ó»×¶þÿÿÿÿ
+U
+java:S1161z":Add the "@Override" annotation above this method signature(Ó»×¶þÿÿÿÿ
