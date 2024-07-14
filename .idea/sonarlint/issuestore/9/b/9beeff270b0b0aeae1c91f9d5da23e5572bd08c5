@@ -1,0 +1,29 @@
+
+I
+java:S1121S".Extract the assignment out of this expression.(ðÜ…¿üÿÿÿÿ
+I
+java:S1121[".Extract the assignment out of this expression.(„º–ýÿÿÿÿÿ
+D
+java:S1121c".Extract the assignment out of this expression.(÷ãÀÍ
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(€†îÖøÿÿÿÿ
+g
+java:S2095;"QUse try-with-resources or close this "AssetFileDescriptor" in a "finally" clause.(ç…Àà
+c
+java:S2095<"MUse try-with-resources or close this "FileInputStream" in a "finally" clause.(üˆ Ù
+l
+java:S2095J"QUse try-with-resources or close this "AssetFileDescriptor" in a "finally" clause.(Ó»ÜÏþÿÿÿÿ
+c
+java:S2095+"MUse try-with-resources or close this "FileInputStream" in a "finally" clause.(œŽ¹
+h
+java:S2095K"MUse try-with-resources or close this "FileInputStream" in a "finally" clause.(Æ­¥„ùÿÿÿÿ
+l
+java:S2095*"QUse try-with-resources or close this "AssetFileDescriptor" in a "finally" clause.(àß±ÿÿÿÿÿÿ
+h
+java:S2095"MUse try-with-resources or close this "FileInputStream" in a "finally" clause.(Æ­¥„ùÿÿÿÿ
+l
+java:S2095"QUse try-with-resources or close this "AssetFileDescriptor" in a "finally" clause.(•ð×ïþÿÿÿÿ
+H
+java:S1144I"2Remove this unused private "loadModelFile" method.(ðŽŒÏ
+E	java:S106""+Replace this use of System.out by a logger.(‘‚Ã®ùÿÿÿÿ
+?	java:S1062"+Replace this use of System.out by a logger.(Œ»ßO
+@	java:S106C"+Replace this use of System.out by a logger.(žû†Ò

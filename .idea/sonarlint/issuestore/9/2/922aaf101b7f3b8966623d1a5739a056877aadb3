@@ -1,0 +1,27 @@
+
+š	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(€†îÖøÿÿÿÿJ$d40528ac-3906-4d7a-8746-c13d084b7915
+t
+java:S2589§"7Remove this expression which always evaluates to "true"(™ÜÎJ$b48ed8fb-7949-47aa-a6fb-222439dd3ec3
+š	java:S135…"YReduce the total number of break and continue statements in this loop to use at most one.(öÎ°ËøÿÿÿÿJ$27444534-66f7-42c0-99fa-a919fb275dce
+
+java:S1192Á"PDefine a constant instead of duplicating this literal "EL TAMAÃ‘O ES: " 3 times.(„öJ$c995741b-4038-4992-aeab-2f372f0a265a
+›	java:S116-"[Rename this field "CantidadNegativo" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(¬œÁ­ıÿÿÿÿJ$550b0b12-1721-46a8-9bcf-f6d777c43acb
+–	java:S116."[Rename this field "CantidadPositivo" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(‹éÚŞJ$03f534a3-ef32-434c-9716-67d5dd6fe96f
+	java:S1161"URename this field "SonIguales" to match the regular expression '^[a-z][a-zA-Z0-9]*$'.(å®ŒJ$dcaa9775-6f62-436d-818a-a4cd7731aa64
+w	java:S125%"<This block of commented-out lines of code should be removed.(‹‚óáJ$3c5ae101-d70c-4a2a-ab3e-f279196498e0
+|	java:S125'"<This block of commented-out lines of code should be removed.(âéãúÿÿÿÿJ$4e81b178-36fa-48d1-87f2-51bfe940983f
+g
+java:S1168V"+Return an empty collection instead of null.(¥¹ïJ$6b6755bf-3069-420a-849c-56ccc89825f3
+l	java:S106"+Replace this use of System.out by a logger.(şìÄıÿÿÿÿJ$266209b2-75b8-418d-8489-7c78474608a8
+
+java:S3776"RRefactor this method to reduce its Cognitive Complexity from 57 to the 15 allowed.(ëŞ{J$437b2a95-8505-40be-91cb-63a6c2132f76
+l	java:S106³"+Replace this use of System.out by a logger.(ìÓëªÿÿÿÿÿJ$ca15f493-27ee-4801-88f4-86bb75c65c43
+g	java:S106¸"+Replace this use of System.out by a logger.(„ÖÉÇJ$51cbd061-68c7-4296-bc97-237636a12f17
+g	java:S106Á"+Replace this use of System.out by a logger.(„öJ$d49f6bae-f851-4ada-aa05-2dd9cc721b60
+g	java:S106Ä"+Replace this use of System.out by a logger.(„öJ$79987ddc-5d1c-400d-b6cd-a5f809274c1d
+g	java:S106Æ"+Replace this use of System.out by a logger.(„öJ$380e982d-dc5f-4bee-bc64-37a7cd5f5050
+g	java:S106Ï"+Replace this use of System.out by a logger.(©ØøçJ$ee3e05f2-9f47-4787-98c9-282d73ce35a1
+
+java:S3776á"RRefactor this method to reduce its Cognitive Complexity from 18 to the 15 allowed.(ÙÄøõJ$1f10b3cb-d08d-4911-a8fd-e04343b75693
+m
+java:S1172á"0Remove this unused method parameter "keypoints".(ÙÄøõJ$4da4ac9d-29ac-4896-a20d-9f626b8e5ac8

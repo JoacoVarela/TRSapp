@@ -134,10 +134,11 @@ public class MainActivity extends AppCompatActivity {
         modelLoader = new ModelLoader(this, "Modelo.tflite", "Modelo1.tflite", "clasificador_gestos.tflite");
 
         Interpreter tflite = modelLoader.getTfLite();
+        Interpreter tflite1 = modelLoader.getTfLite1();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
-        imageAnalyzer = new ImageAnalyzer(tflite, this, resultTextView);
+        imageAnalyzer = new ImageAnalyzer(tflite, tflite1,this, resultTextView);
 
         initializeMediaPipe();
         executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
@@ -228,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeMediaPipe() {
-        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(1).build();
+        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(2).build();
         imageAnalyzer.setHands(this, options);
     }
 

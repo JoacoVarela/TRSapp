@@ -1,0 +1,6 @@
+
+t	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(€†îÖøÿÿÿÿ
+h
+java:S2095"MUse try-with-resources or close this "FileInputStream" in a "finally" clause.(Æ­¥„ùÿÿÿÿ
+l
+java:S2095"QUse try-with-resources or close this "AssetFileDescriptor" in a "finally" clause.(¥åÛ¥þÿÿÿÿ
