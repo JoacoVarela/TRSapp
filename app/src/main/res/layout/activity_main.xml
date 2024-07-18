@@ -9,29 +9,42 @@
 
     <LinearLayout
         android:id="@+id/navBar"
-        android:layout_width="0dp"
+        android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:gravity="center_vertical"
+        android:background="@color/primaryapp"
+        tools:ignore="MissingConstraints">
 
         <ImageButton
-            android:layout_gravity="center"
             android:id="@+id/backButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:src="@drawable/baseline_arrow_back_24"
             android:layout_margin="16dp"
+            android:background="@android:color/transparent" />
+
+        <Space
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageButton
+            android:id="@+id/speakButton"
+            android:layout_width="105dp"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_volume_up_24"
+            android:layout_marginEnd="8dp"
             android:background="@android:color/transparent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:textAlignment="center" />
+
     </LinearLayout>
+
 
     <FrameLayout
         android:id="@+id/frameCardView"
         android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_height="400dp"
         app:layout_constraintDimensionRatio="3:4"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -95,7 +108,7 @@
 
         <EditText
             android:id="@+id/resultTextView"
-            android:layout_width="285dp"
+            android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/primaryapp"
             android:gravity="start|top"
@@ -106,35 +119,40 @@
             android:scrollHorizontally="false"
             android:singleLine="false"
             android:textColor="@android:color/black"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:layout_marginTop="60dp"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="8dp"
+            android:gravity="center">
         <Button
             android:id="@+id/cleanLastCharacter"
-            android:layout_width="105dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end|bottom"
             android:layout_marginEnd="8dp"
             android:text="Borrar"
             android:textColor="@color/primaryapp" />
 
         <Button
             android:id="@+id/cleanButton"
-            android:layout_width="105dp"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Limpiar"
             android:textColor="@color/primaryapp"
             android:layout_gravity="end|top"
             android:layout_marginEnd="8dp"/>
 
-        <ImageButton
-            android:id="@+id/speakButton"
-            android:layout_width="105dp"
+        <Button
+            android:id="@+id/saveButton"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/baseline_volume_up_24"
-            android:layout_gravity="end|center"
-            android:background="@android:color/transparent"
-            android:layout_marginEnd="8dp"
-            android:textAlignment="center"/>
+            android:text="Guardar"
+            android:textColor="@color/primaryapp"
+            android:layout_gravity="top|center"
+            android:layout_marginEnd="8dp"/>
+        </LinearLayout>
 
     </FrameLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

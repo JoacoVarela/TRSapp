@@ -9,6 +9,9 @@ import androidx.core.content.ContextCompat;
 
 import org.tensorflow.lite.Interpreter;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,8 +20,8 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.media.Image;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.text.Editable;
 import android.text.InputType;
@@ -31,7 +34,6 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.TextView;
 import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import android.view.View;
@@ -47,6 +49,7 @@ import com.google.mediapipe.solutions.hands.HandsOptions;
 public class MainActivity extends AppCompatActivity {
 
     private static final int CAMERA_PERMISSION_REQUEST_CODE = 1001;
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 1002;
     private PreviewView previewView;
     private EditText resultTextView;
     private ConstraintLayout mainLayout;
@@ -62,86 +65,84 @@ public class MainActivity extends AppCompatActivity {
     private Button cleanText;
     private TextToSpeech textToSpeech;
     private ImageButton speakButton;
+    private Button saveButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Inicializa los elementos de la UI
+        getElements();
+        initializeUI();
+        initializeTextToSpeech();
+        initializeFirebase();
+        initializeCameraManager();
+        setupButtonListeners();
+    }
+
+    private void getElements() {
         previewView = findViewById(R.id.previewView);
         resultTextView = findViewById(R.id.resultTextView);
-        resultTextView.setHorizontallyScrolling(false);
-        resultTextView.setSingleLine(false);
-        resultTextView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
-        resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
-        speakButton = findViewById(R.id.speakButton);
-
-        textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
-            @Override
-            public void onInit(int status) {
-                if (status == TextToSpeech.SUCCESS) {
-                    int result = textToSpeech.setLanguage(new Locale("es", "ES"));
-                    if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
-                        Log.e("TTS", "Language not supported");
-                    } else {
-                        speakButton.setEnabled(true);
-                    }
-                } else {
-                    Log.e("TTS", "Initialization failed");
-                }
-            }
-        });
-
-        speakButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String text = resultTextView.getText().toString();
-                textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
-            }
-        });
-
-        TextConfig textConfig = getIntent().getParcelableExtra("textConfig");
-
-        if (textConfig != null) {
-            textConfig.applyConfig(resultTextView);
-        }
         rotateCameraButton = findViewById(R.id.rotateCameraButton);
         backButton = findViewById(R.id.backButton);
         cleanText = findViewById(R.id.cleanButton);
         cleanLastCharacter = findViewById(R.id.cleanLastCharacter);
-        cleanLastCharacter.setOnClickListener(v -> {
-            String currentText = resultTextView.getText().toString();
-            if (currentText.length() > 0) {
-                // Eliminar el último carácter del texto actual
-                String newText = currentText.substring(0, currentText.length() - 1);
-                resultTextView.setText(newText);
+        mainLayout = findViewById(R.id.mainLayout);
+        speakButton = findViewById(R.id.speakButton);
+        saveButton = findViewById(R.id.saveButton);
+    }
 
-                // Actualizar la base de datos con el nuevo texto
-                myRef.setValue(newText)
-                        .addOnSuccessListener(aVoid -> Log.i("Firebase", "Texto actualizado exitosamente"))
-                        .addOnFailureListener(e -> Log.e("Firebase", "Error al actualizar texto", e));
-            }
-        });
-        cleanText.setOnClickListener(v -> clearDatabase());
+    private void initializeUI() {
+        resultTextView.setHorizontallyScrolling(false);
+        resultTextView.setSingleLine(false);
+        resultTextView.setImeOptions(EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        resultTextView.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_FLAG_MULTI_LINE | InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
 
         // Verifica que los elementos de la UI no sean nulos
         if (previewView == null || resultTextView == null || rotateCameraButton == null || backButton == null) {
             throw new RuntimeException("Error: uno o más elementos de la UI no se han inicializado correctamente.");
         }
 
-        // Inicializa el modelo y obtén el intérprete
-        modelLoader = new ModelLoader(this, "Modelo.tflite", "Modelo1.tflite", "clasificador_gestos.tflite");
+        TextConfig textConfig = getIntent().getParcelableExtra("textConfig");
+        if (textConfig != null) {
+            textConfig.applyConfig(resultTextView);
+        }
+    }
 
+    private void initializeTextToSpeech() {
+        textToSpeech = new TextToSpeech(this, status -> {
+            if (status == TextToSpeech.SUCCESS) {
+                int result = textToSpeech.setLanguage(new Locale("es", "ES"));
+                if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                    Log.e("TTS", "Language not supported");
+                } else {
+                    speakButton.setEnabled(true);
+                }
+            } else {
+                Log.e("TTS", "Initialization failed");
+            }
+        });
+    }
+
+    private void initializeFirebase() {
+        FirebaseApp.initializeApp(this);
+        FirebaseDatabase database = FirebaseDatabase.getInstance("https://translationtextdb-default-rtdb.firebaseio.com/");
+        myRef = database.getReference("translatedText");
+        setupEditTextListener();
+        setupDatabaseListener();
+    }
+
+    private void initializeCameraManager() {
+        // Inicializa el modelo y obtén el intérprete
+        modelLoader = new ModelLoader(this, "Modelo.tflite", "ModeloTwoHands.tflite");
         Interpreter tflite = modelLoader.getTfLite();
-        Interpreter tflite1 = modelLoader.getTfLite1();
+        Interpreter tflite1 = modelLoader.getTfLiteTwoHands();
         if (tflite == null) {
             throw new RuntimeException("Error: el modelo TFLite no se ha cargado correctamente.");
         }
-        imageAnalyzer = new ImageAnalyzer(tflite, tflite1,this, resultTextView);
-
+        imageAnalyzer = new ImageAnalyzer(tflite, tflite1, this, resultTextView);
         initializeMediaPipe();
-        executorService = Executors.newSingleThreadExecutor(); // Asegúrate de inicializar esto antes de usarlo
+        executorService = Executors.newSingleThreadExecutor();
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
 
         // Solicita permisos de cámara si no están concedidos
@@ -150,24 +151,38 @@ public class MainActivity extends AppCompatActivity {
         } else {
             initializeCamera();
         }
+    }
+
+    private void setupButtonListeners() {
+        speakButton.setOnClickListener(v -> {
+            String text = resultTextView.getText().toString();
+            textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+        });
+
+        saveButton.setOnClickListener(v -> saveTextToFile(resultTextView.getText().toString()));
+
+        cleanLastCharacter.setOnClickListener(v -> {
+            String currentText = resultTextView.getText().toString();
+            if (currentText.length() > 0) {
+                String newText = currentText.substring(0, currentText.length() - 1);
+                resultTextView.setText(newText);
+                myRef.setValue(newText)
+                        .addOnSuccessListener(aVoid -> Log.i("Firebase", "Texto actualizado exitosamente"))
+                        .addOnFailureListener(e -> Log.e("Firebase", "Error al actualizar texto", e));
+            }
+        });
+
+        cleanText.setOnClickListener(v -> clearDatabase());
 
         backButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, HomeActivity.class)));
         rotateCameraButton.setOnClickListener(v -> {
             cameraManager.switchCamera(this);
-            // Actualiza el estado de la cámara después de un pequeño retardo para asegurar que la cámara ha cambiado
-            previewView.postDelayed(this::updateCameraState, 500); // Ajusta el tiempo de espera según sea necesario
+            previewView.postDelayed(this::updateCameraState, 500);
         });
-
-        mainLayout = findViewById(R.id.mainLayout);
-        setupUI(mainLayout);
-
-        FirebaseApp.initializeApp(this);
-
-        FirebaseDatabase database = FirebaseDatabase.getInstance("https://translationtextdb-default-rtdb.firebaseio.com/");
-        myRef = database.getReference("translatedText");
-        setupEditTextListener();
-        setupDatabaseListener();
     }
+
+
+
 
     private void setupUI(View view) {
         // Configura el listener de toque para ocultar el teclado
@@ -216,6 +231,14 @@ public class MainActivity extends AppCompatActivity {
                 // Permiso denegado, muestra un mensaje
                 Toast.makeText(this, "Cámara denegada. La aplicación no puede funcionar sin este permiso.", Toast.LENGTH_LONG).show();
             }
+            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    Toast.makeText(this, "Permiso de almacenamiento concedido", Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(this, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show();
+                }
+            }
+
         }
     }
 
@@ -289,6 +312,43 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+
+    private void saveTextToFile(String text) {
+        if (isExternalStorageWritable()) {
+            File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "TRS");
+
+            // Crea la carpeta TRS si no existe
+            if (!path.exists()) {
+                path.mkdirs();
+            }
+
+            // Determina el nombre del archivo secuencialmente
+            int fileIndex = 1;
+            File file;
+            do {
+                file = new File(path, "conversacion_" + fileIndex + ".txt");
+                fileIndex++;
+            } while (file.exists());
+
+            try {
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(text.getBytes());
+                fos.close();
+                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            } catch (IOException e) {
+                Log.e("MainActivity", "Error al guardar texto en archivo", e);
+                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
@@ -298,8 +358,8 @@ public class MainActivity extends AppCompatActivity {
         if (modelLoader.getTfLite() != null) {
             modelLoader.getTfLite().close();
         }
-        if (modelLoader.getTfLite1() != null) {
-            modelLoader.getTfLite1().close();
+        if (modelLoader.getTfLiteTwoHands() != null) {
+            modelLoader.getTfLiteTwoHands().close();
         }
         if (textToSpeech != null) {
             textToSpeech.stop();

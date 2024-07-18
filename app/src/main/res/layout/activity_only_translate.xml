@@ -31,35 +31,47 @@
     <TextView
         android:id="@+id/translatedTextView"
         android:layout_width="match_parent"
-        android:layout_height="500dp"
+        android:layout_height="321dp"
         android:background="@color/primaryapp"
         android:gravity="start|top"
-        android:padding="16dp"
-        android:textColor="@android:color/black"
-        android:textSize="16sp"
+        android:imeOptions="flagNoExtractUi|actionDone"
         android:inputType="textMultiLine|text"
+        android:overScrollMode="never"
+        android:padding="16dp"
         android:scrollHorizontally="false"
         android:singleLine="false"
-        android:overScrollMode="never"
-        android:imeOptions="flagNoExtractUi|actionDone"/>
+        android:textColor="@android:color/black"
+        android:textSize="16sp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center">
 
     <Button
         android:id="@+id/cleanButton"
-        android:layout_width="120dp"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
         android:text="Limpiar"
         android:textColor="@color/primaryapp"
-        android:layout_gravity="end"/>
+        android:layout_gravity="center"/>
 
     <ImageButton
         android:id="@+id/speakButton"
         android:layout_width="105dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|center"
+        android:layout_height="40dp"
         android:layout_marginEnd="8dp"
-        android:layout_marginTop="8dp"
         android:background="@android:color/transparent"
-        android:src="@drawable/baseline_volume_up_24"
-        android:textAlignment="center" />
+        android:layout_gravity="top"
+        android:src="@drawable/baseline_volume_up_24"/>
+    <Button
+        android:id="@+id/saveButton"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="Guardar"
+        android:textColor="@color/primaryapp"
+        android:layout_gravity="center"
+        android:layout_marginEnd="8dp"/>
+</LinearLayout>
 
 </LinearLayout>

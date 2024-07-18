@@ -3,6 +3,7 @@ package com.example.TRSapp;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
@@ -10,6 +11,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,16 +23,22 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Locale;
 
 public class OnlyTranslateActivity extends AppCompatActivity {
 
+    private static final int STORAGE_PERMISSION_REQUEST_CODE = 1002;
     private TextView translatedTextView;
     private DatabaseReference myRef;
     private ImageButton backButton;
     private Button cleanText;
     private TextToSpeech textToSpeech;
     private ImageButton speakButton;
+    private Button saveButton;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,6 +49,8 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         backButton = findViewById(R.id.backButton);
         cleanText = findViewById(R.id.cleanButton);
         speakButton = findViewById(R.id.speakButton);
+        saveButton = findViewById(R.id.saveButton);
+
 
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -63,6 +73,14 @@ public class OnlyTranslateActivity extends AppCompatActivity {
             public void onClick(View v) {
                 String text = translatedTextView.getText().toString();
                 textToSpeech.speak(text, TextToSpeech.QUEUE_FLUSH, null, null);
+            }
+        });
+
+        // Agrega el listener para el botón de guardar
+        saveButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveTextToFile(translatedTextView.getText().toString());
             }
         });
 
@@ -106,6 +124,42 @@ public class OnlyTranslateActivity extends AppCompatActivity {
                 Log.e("Firebase", "Error al leer datos", error.toException());
             }
         });
+    }
+
+    private void saveTextToFile(String text) {
+        if (isExternalStorageWritable()) {
+            File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "TRS");
+
+            // Crea la carpeta TRS si no existe
+            if (!path.exists()) {
+                path.mkdirs();
+            }
+
+            // Determina el nombre del archivo secuencialmente
+            int fileIndex = 1;
+            File file;
+            do {
+                file = new File(path, "conversacion_" + fileIndex + ".txt");
+                fileIndex++;
+            } while (file.exists());
+
+            try {
+                FileOutputStream fos = new FileOutputStream(file);
+                fos.write(text.getBytes());
+                fos.close();
+                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+            } catch (IOException e) {
+                Log.e("MainActivity", "Error al guardar texto en archivo", e);
+                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private boolean isExternalStorageWritable() {
+        String state = Environment.getExternalStorageState();
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
     protected void onDestroy() {
         super.onDestroy();

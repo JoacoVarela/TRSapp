@@ -14,7 +14,6 @@ import android.graphics.YuvImage;
 import android.util.Log;
 import android.widget.TextView;
 
-import com.example.TRSapp.Keypoint;
 import com.google.mediapipe.formats.proto.LandmarkProto;
 import com.google.mediapipe.solutions.hands.Hands;
 import com.google.mediapipe.solutions.hands.HandsOptions;
@@ -31,12 +30,12 @@ import java.util.List;
 
 public class ImageAnalyzer {
     private Interpreter tflite;
-    private Interpreter tflite1;
+    private Interpreter tfliteTwoHands;
     private Activity activity;
     private List<List<Keypoint>> secuenciaKeypointsUnaMano = new LinkedList<>();
     private List<List<Keypoint>> secuenciaKeypointsDosManos = new LinkedList<>();
     private static final String[] CLASS_NAMES = {"A", "B", "C", "D", "E", "F", "G", "H","I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P", "Q", "R","S", "T", "U", "V", "W", "X", "Y", "Z"};
-    private static final String[] CLASS_NAMES1 = { "bienvenidos ", "buenos_dias ", "companeros ", "estudiantes", "muchas_gracias"};
+    private static final String[] CLASS_NAMES1 = { "bienvenidos ", "buenos dias ", "compañeros ", "estudiantes ", "muchas gracias "};
     private Hands hands;
     private TextView resultTextView;
 
@@ -44,26 +43,26 @@ public class ImageAnalyzer {
     private List<Keypoint> lastKeypoints = null;
 
     private int framesToSkip = 0;
-
     private boolean shouldProcessFrames = true;
     private int activeCamera;
     private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
     private static final int NO_HAND_DETECTED_THRESHOLD = 2; // Umbral para agregar un espacio
-
     private int frameCounter = 0; // Contador de frames
     private int inferenceInterval = 2; // Intervalo de inferencia (ajustable)
+
+    public ImageAnalyzer(Interpreter tflite, Interpreter tfliteTwoHands, Activity activity, TextView resultTextView) {
+        this.tflite = tflite;
+        this.tfliteTwoHands = tfliteTwoHands;
+        this.activity = activity;
+        this.resultTextView = resultTextView;
+    }
+
     public void setActiveCamera(int activeCamera) {
         this.activeCamera = activeCamera;
         System.out.println("La camara es> " + activeCamera);
     }
 
-    public ImageAnalyzer(Interpreter tflite, Interpreter tflite1, Activity activity, TextView resultTextView) {
-        this.tflite = tflite;
-        this.tflite1 = tflite1;
-        this.activity = activity;
-        this.resultTextView = resultTextView;
-    }
-
+    // Convertir una lista de keypoints a un ByteBuffer para la inferencia
     private ByteBuffer convertToByteBuffer(List<List<Keypoint>> secuencia, int numKeypoints) {
         ByteBuffer byteBuffer = ByteBuffer.allocateDirect(20 * numKeypoints * 3 * Float.BYTES);
         byteBuffer.order(ByteOrder.nativeOrder());
@@ -77,6 +76,7 @@ public class ImageAnalyzer {
         return byteBuffer;
     }
 
+    // Encontrar el índice del valor máximo en un array de floats
     private int argMax(float[] elements) {
         int maxIndex = 0;
         float maxValue = elements[0];
@@ -89,6 +89,7 @@ public class ImageAnalyzer {
         return maxIndex;
     }
 
+    // Extraer keypoints de una mano detectada
     private List<Keypoint> extractKeypoints(HandsResult handsResult) {
         if (handsResult == null || handsResult.multiHandLandmarks().isEmpty()) {
             Log.e("MediaPipe", "No se detectaron manos");
@@ -104,6 +105,7 @@ public class ImageAnalyzer {
         return keypoints;
     }
 
+    // Extraer keypoints de dos manos detectadas
     private List<List<Keypoint>> extractKeypointsForTwoHands(HandsResult handsResult) {
         if (handsResult == null || handsResult.multiHandLandmarks().isEmpty() || handsResult.multiHandLandmarks().size() < 2) {
             Log.e("MediaPipe", "No se detectaron dos manos");
@@ -136,7 +138,7 @@ public class ImageAnalyzer {
         return keypointsBothHands;
     }
 
-
+    // Convertir un ImageProxy a un Bitmap
     private Bitmap convertImageProxyToBitmap(ImageProxy image) {
         ByteBuffer yBuffer = image.getPlanes()[0].getBuffer();
         ByteBuffer uBuffer = image.getPlanes()[1].getBuffer();
@@ -171,7 +173,7 @@ public class ImageAnalyzer {
         return Bitmap.createBitmap(resizedBitmap, 0, 0, resizedBitmap.getWidth(), resizedBitmap.getHeight(), matrix, true);
     }
 
-
+    // Analizar una imagen de la cámara
     public void analyzeImage(@NonNull ImageProxy image) {
         if (shouldProcessFrames) {
             if (framesToSkip > 0) {
@@ -194,7 +196,6 @@ public class ImageAnalyzer {
                         List<List<Keypoint>> keypointsBothHands = extractKeypointsForTwoHands(handsResult);
                         processTwoHands(keypointsBothHands);
                     } else {
-                        // Si no se detecta una mano
                         handleNoHandsDetected();
                     }
                 });
@@ -203,6 +204,7 @@ public class ImageAnalyzer {
         image.close();
     }
 
+    // Procesar keypoints de una mano
     private void processSingleHand(List<Keypoint> keypoints) {
         if (keypoints != null && !keypoints.isEmpty()) {
             noHandDetectedCount = 0; // Resetear el contador si se detecta una mano
@@ -224,6 +226,7 @@ public class ImageAnalyzer {
         }
     }
 
+    // Procesar keypoints de dos manos
     private void processTwoHands(List<List<Keypoint>> keypointsBothHands) {
         if (keypointsBothHands != null && !keypointsBothHands.isEmpty() && keypointsBothHands.size() == 2) {
             noHandDetectedCount = 0; // Resetear el contador si se detectan dos manos
@@ -238,7 +241,7 @@ public class ImageAnalyzer {
 
             frameCounter++;
             if (frameCounter % inferenceInterval == 0) { // Realizar inferencia cada 'inferenceInterval' frames
-                doInference(tflite1, CLASS_NAMES1, combinedKeypoints, 42, secuenciaKeypointsDosManos);
+                doInference(tfliteTwoHands, CLASS_NAMES1, combinedKeypoints, 42, secuenciaKeypointsDosManos);
                 frameCounter = 0;
             }
 
@@ -247,6 +250,7 @@ public class ImageAnalyzer {
         }
     }
 
+    // Manejar la ausencia de manos detectadas
     private void handleNoHandsDetected() {
         Log.e("MediaPipe", "No se detectaron manos");
         noHandDetectedCount++;
@@ -268,7 +272,7 @@ public class ImageAnalyzer {
         }
     }
 
-    // Nueva función para normalizar los keypoints
+    // Normalizar keypoints
     private List<Keypoint> normalizarKeypoints(List<Keypoint> keypoints) {
         float distanciaReferencia = (float) calcularDistancia(keypoints.get(0), keypoints.get(12));
         List<Keypoint> keypointsNormalizados = new ArrayList<>();
@@ -285,15 +289,15 @@ public class ImageAnalyzer {
         return keypointsNormalizados;
     }
 
-    // Nueva función para verificar la diferencia entre keypoints para "U" y "V"
+    // Verificar diferencia entre "U" y "V"
     private String verificarDiferenciaUV(List<Keypoint> keypoints) {
-        keypoints = normalizarKeypoints(keypoints);  // Normalizar los keypoints
+        keypoints = normalizarKeypoints(keypoints);
 
         double distancia_8_12 = calcularDistancia(keypoints.get(8), keypoints.get(12));
         double distancia_6_10 = calcularDistancia(keypoints.get(5), keypoints.get(9));
 
         double diferencia = Math.abs(distancia_8_12 - distancia_6_10);
-        double umbral = 0.08;  // Ajusta este valor según sea necesario
+        double umbral = 0.08; // Ajusta este valor según sea necesario
         System.out.println("el umbral es: " + diferencia);
         if (diferencia > umbral) {
             return "V";
@@ -302,7 +306,7 @@ public class ImageAnalyzer {
         }
     }
 
-    // Nueva función para verificar la diferencia en el eje Z para "T" y "F"
+    // Verificar diferencia en el eje Z entre "T" y "F"
     private String verificarDiferenciaTF(List<Keypoint> keypoints) {
         double z_3 = keypoints.get(3).z;
         double z_4 = keypoints.get(4).z;
@@ -315,12 +319,12 @@ public class ImageAnalyzer {
         }
     }
 
-    // Función para calcular la distancia entre dos keypoints
+    // Calcular la distancia entre dos keypoints
     private double calcularDistancia(Keypoint p1, Keypoint p2) {
         return Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2) + Math.pow(p1.z - p2.z, 2));
     }
 
-    // Modificar la función de inferencia para incluir la verificación
+    // Realizar la inferencia y actualizar la UI
     private void doInference(Interpreter interpreter, String[] classNames, List<Keypoint> keypoints, int keypointsPerHand, List<List<Keypoint>> secuenciaKeypoints) {
         if (secuenciaKeypoints.size() < 20) {
             return;
@@ -336,64 +340,58 @@ public class ImageAnalyzer {
         float confidence = output[0][predictedClass];
 
         String resultText = classNames[predictedClass];
+        resultText = verificarResultadosEspeciales(resultText, keypoints, secuenciaKeypoints);
 
+        final String finalResultText = resultText;
+        activity.runOnUiThread(() -> actualizarUI(confidence, finalResultText));
+    }
+
+    // Verificar resultados especiales para ciertas letras
+    private String verificarResultadosEspeciales(String resultText, List<Keypoint> keypoints, List<List<Keypoint>> secuenciaKeypoints) {
         switch (resultText) {
             case "U":
             case "V":
-                resultText = verificarDiferenciaUV(keypoints);
-                break;
+                return verificarDiferenciaUV(keypoints);
 
             case "T":
             case "F":
-                resultText = verificarDiferenciaTF(keypoints);
-                break;
+                return verificarDiferenciaTF(keypoints);
 
             case "L":
             case "LL":
-                if (verificarVariacion3Frames(secuenciaKeypoints)) {
-                    resultText = "LL";
-                } else {
-                    resultText = "L";
-                }
-                break;
+                return verificarVariacion3Frames(secuenciaKeypoints) ? "LL" : "L";
 
             case "N":
             case "NI":
-                if (verificarVariacion3Frames(secuenciaKeypoints)) {
-                    resultText = "Ñ";
-                } else {
-                    resultText = "N";
-                }
-                break;
+                return verificarVariacion3Frames(secuenciaKeypoints) ? "Ñ" : "N";
 
             default:
-                // Otras acciones si es necesario
-                break;
+                return resultText;
         }
+    }
 
-        final String finalResultText = resultText;
-        activity.runOnUiThread(() -> {
-            if (confidence > 0.50) {
-                secuenciaKeypoints.clear(); // Limpiar secuencia de keypoints al realizar una inferencia correcta
-                secuenciaKeypointsDosManos.clear();
-                secuenciaKeypointsUnaMano.clear();
-                framesToSkip = 16;
+    // Actualizar la UI con el resultado de la inferencia
+    private void actualizarUI(float confidence, String finalResultText) {
+        if (confidence > 0.50) {
+            secuenciaKeypointsUnaMano.clear();
+            secuenciaKeypointsDosManos.clear();
+            framesToSkip = 16;
 
-                if (finalResultText != null && !finalResultText.isEmpty()) {
-                    if (resultTextView.getText().length() == 0) {
-                        resultTextView.append(finalResultText);
-                    } else {
-                        char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
-                        String lastCharacterAsString = String.valueOf(lastCharacter);
-                        if (!lastCharacterAsString.equalsIgnoreCase(finalResultText)) {
-                            resultTextView.append(finalResultText.toLowerCase());
-                        }
+            if (finalResultText != null && !finalResultText.isEmpty()) {
+                if (resultTextView.getText().length() == 0) {
+                    resultTextView.append(finalResultText);
+                } else {
+                    char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
+                    String lastCharacterAsString = String.valueOf(lastCharacter);
+                    if (!lastCharacterAsString.equalsIgnoreCase(finalResultText)) {
+                        resultTextView.append(finalResultText.toLowerCase());
                     }
                 }
             }
-        });
+        }
     }
 
+    // Verificar variación en los últimos 3 frames
     private boolean verificarVariacion3Frames(List<List<Keypoint>> secuencia) {
         if (secuencia.size() < 3) {
             return false;
@@ -409,7 +407,7 @@ public class ImageAnalyzer {
             variacionTotal += variacion1 + variacion2;
         }
         System.out.println("la variacion total es: " + variacionTotal);
-        double umbral = 0.3;  // Ajusta este valor según sea necesario
+        double umbral = 0.3; // Ajusta este valor según sea necesario
         return variacionTotal > umbral;
     }
 

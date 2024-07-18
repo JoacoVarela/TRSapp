@@ -114,7 +114,7 @@
 
                 <Button
                     android:id="@+id/iniciarTraduccionButton"
-                    android:layout_width="150dp"
+                    android:layout_width="130dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:backgroundTint="@color/detailsapp"
@@ -126,7 +126,7 @@
 
                 <Button
                     android:id="@+id/iniciarLecturaButton"
-                    android:layout_width="150dp"
+                    android:layout_width="130dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
                     android:backgroundTint="@color/detailsapp"
