@@ -13,6 +13,8 @@ public class HomeActivity extends AppCompatActivity {
     private static final int TEXT_CONFIG_REQUEST_CODE = 1;
     private TextConfig textConfig;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +41,12 @@ public class HomeActivity extends AppCompatActivity {
             Intent intent = new Intent(HomeActivity.this, TextConfigActivity.class);
             intent.putExtra("textConfig", textConfig);
             startActivityForResult(intent, TEXT_CONFIG_REQUEST_CODE);
+        });
+
+        ImageButton questionButton = findViewById(R.id.userManual);
+        questionButton.setOnClickListener(v -> {
+            Intent intent = new Intent(HomeActivity.this, UserManualActivity.class);
+           startActivity(intent);
         });
     }
 
