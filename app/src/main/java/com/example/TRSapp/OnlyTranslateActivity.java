@@ -1,6 +1,9 @@
+// Modulo para manejar la traduccion en tiempo real desde otro dispositivo
 package com.example.TRSapp;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
@@ -14,6 +17,8 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import com.example.TRSapp.R;
 import com.google.firebase.FirebaseApp;
@@ -39,6 +44,7 @@ public class OnlyTranslateActivity extends AppCompatActivity {
     private ImageButton speakButton;
     private Button saveButton;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,6 +58,11 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         cleanText = findViewById(R.id.cleanButton);
         speakButton = findViewById(R.id.speakButton);
         saveButton = findViewById(R.id.saveButton);
+
+        // Solicitar permisos de almacenamiento si no están concedidos
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
+        }
 
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -170,7 +181,17 @@ public class OnlyTranslateActivity extends AppCompatActivity {
             showCustomToast("El almacenamiento externo no está disponible");
         }
     }
-
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+           if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showCustomToast("Permiso de almacenamiento concedido");
+            } else {
+                showCustomToast("Permiso de almacenamiento denegado");
+            }
+        }
+    }
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);

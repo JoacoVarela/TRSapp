@@ -54,7 +54,7 @@ dependencies {
     implementation ("org.tensorflow:tensorflow-lite-select-tf-ops:2.14.0")
     implementation("androidx.constraintlayout:constraintlayout:2.0.4")
 
-    implementation ("com.google.mediapipe:hands:0.10.9")
+    implementation ("com.google.mediapipe:hands:0.10.14")
     implementation ("org.jpmml:pmml-evaluator:1.5.16")
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
     implementation("com.google.firebase:firebase-database:20.0.3")

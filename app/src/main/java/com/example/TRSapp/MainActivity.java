@@ -68,7 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech textToSpeech;
     private ImageButton speakButton;
     private Button saveButton;
-    private boolean hasFocusResultTextView = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -150,9 +149,13 @@ public class MainActivity extends AppCompatActivity {
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
 
         // Solicita permisos de cámara si no están concedidos
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
-        } else {
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
+                ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                    CAMERA_PERMISSION_REQUEST_CODE);
+        }
+        else {
             initializeCamera();
         }
     }
@@ -235,12 +238,12 @@ public class MainActivity extends AppCompatActivity {
                 // Permiso denegado, muestra un mensaje
                 showCustomToast( "Cámara denegada. La aplicación no puede funcionar sin este permiso.");
             }
-            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    showCustomToast( "Permiso de almacenamiento concedido");
-                } else {
-                   showCustomToast( "Permiso de almacenamiento denegado");
-                }
+        }
+        if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                showCustomToast("Permiso de almacenamiento concedido");
+            } else {
+                showCustomToast("Permiso de almacenamiento denegado");
             }
 
         }
@@ -256,7 +259,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initializeMediaPipe() {
-        HandsOptions options = HandsOptions.builder().setStaticImageMode(false).setMaxNumHands(2).build();
+        HandsOptions options = HandsOptions.builder()
+                .setMaxNumHands(2)
+                .setMinDetectionConfidence(0.99f)
+                .setMinTrackingConfidence(0.9f)
+                .setModelComplexity(1)
+                .setRunOnGpu(true)
+                .build();
         imageAnalyzer.setHands(this, options);
     }
 
@@ -318,6 +327,10 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void saveTextToFile(String text) {
+        if (text.isEmpty()) {
+            showCustomToast("El campo de texto está vacío. No se guardó ningún archivo.");
+            return; // No proceder con el guardado si el texto está vacío
+        }
         if (isExternalStorageWritable()) {
             File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "TRS");
 
