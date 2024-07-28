@@ -27,6 +27,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -34,6 +35,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import android.view.View;
@@ -66,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
     private TextToSpeech textToSpeech;
     private ImageButton speakButton;
     private Button saveButton;
+    private boolean hasFocusResultTextView = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,6 +81,7 @@ public class MainActivity extends AppCompatActivity {
         initializeFirebase();
         initializeCameraManager();
         setupButtonListeners();
+        setupUI(mainLayout);
     }
 
     private void getElements() {
@@ -229,13 +233,13 @@ public class MainActivity extends AppCompatActivity {
                 initializeCamera();
             } else {
                 // Permiso denegado, muestra un mensaje
-                Toast.makeText(this, "Cámara denegada. La aplicación no puede funcionar sin este permiso.", Toast.LENGTH_LONG).show();
+                showCustomToast( "Cámara denegada. La aplicación no puede funcionar sin este permiso.");
             }
             if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    Toast.makeText(this, "Permiso de almacenamiento concedido", Toast.LENGTH_SHORT).show();
+                    showCustomToast( "Permiso de almacenamiento concedido");
                 } else {
-                    Toast.makeText(this, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show();
+                   showCustomToast( "Permiso de almacenamiento denegado");
                 }
             }
 
@@ -334,19 +338,32 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(text.getBytes());
                 fos.close();
-                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                showCustomToast("Texto guardado en " + file.getAbsolutePath());
             } catch (IOException e) {
                 Log.e("MainActivity", "Error al guardar texto en archivo", e);
-                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+                showCustomToast("Error al guardar texto");
             }
         } else {
-            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+            showCustomToast("El almacenamiento externo no está disponible");
         }
     }
 
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+    private void showCustomToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.toast, findViewById(R.id.customToastText));
+
+        TextView textView = layout.findViewById(R.id.customToastText);
+        textView.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
     }
 
     @Override

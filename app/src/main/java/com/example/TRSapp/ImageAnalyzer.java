@@ -263,7 +263,7 @@ public class ImageAnalyzer {
                     framesToSkip = 4;
 
                     char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
-                    if (lastCharacter != ' ') {
+                    if (lastCharacter != ' ' && !resultTextView.hasFocus()) {
                         resultTextView.append(" ");
                     }
                 }

@@ -1,4 +1,3 @@
-// Modulo para manejar la traduccion en tiempo real desde otro dispositivo
 package com.example.TRSapp;
 
 import android.content.Intent;
@@ -6,9 +5,9 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -16,6 +15,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.TRSapp.R;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -39,18 +39,19 @@ public class OnlyTranslateActivity extends AppCompatActivity {
     private ImageButton speakButton;
     private Button saveButton;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_only_translate); // Asegúrate de tener el layout correspondiente
+        setContentView(R.layout.activity_only_translate);
 
-        translatedTextView = findViewById(R.id.translatedTextView); // Asegúrate de que el ID coincida con el de tu layout
+        // Mostrar un mensaje Toast personalizado al iniciar la actividad
+        showCustomToast("Se necesita conexión a internet para el uso de esta funcionalidad");
+
+        translatedTextView = findViewById(R.id.translatedTextView);
         backButton = findViewById(R.id.backButton);
         cleanText = findViewById(R.id.cleanButton);
         speakButton = findViewById(R.id.speakButton);
         saveButton = findViewById(R.id.saveButton);
-
 
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -96,12 +97,25 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         cleanText.setOnClickListener(v -> clearDatabase());
     }
 
+    private void showCustomToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.toast, findViewById(R.id.customToastText));
+
+        TextView textView = layout.findViewById(R.id.customToastText);
+        textView.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
+
     // Método para limpiar la base de datos
     private void clearDatabase() {
         myRef.setValue(null)
                 .addOnSuccessListener(aVoid -> {
                     Log.i("Firebase", "Datos limpiados exitosamente");
-                    // Limpia el EditText
+                    // Limpia el TextView
                     translatedTextView.setText("");
                 })
                 .addOnFailureListener(e -> Log.e("Firebase", "Error al limpiar datos", e));
@@ -114,7 +128,7 @@ public class OnlyTranslateActivity extends AppCompatActivity {
                 // Obtén el valor actualizado
                 String translatedText = dataSnapshot.getValue(String.class);
                 if (translatedText != null) {
-                    translatedTextView.setText(translatedText); // Actualiza el EditText con el nuevo texto
+                    translatedTextView.setText(translatedText); // Actualiza el TextView con el nuevo texto
                 }
             }
 
@@ -147,13 +161,13 @@ public class OnlyTranslateActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(text.getBytes());
                 fos.close();
-                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                showCustomToast("Texto guardado en " + file.getAbsolutePath());
             } catch (IOException e) {
                 Log.e("MainActivity", "Error al guardar texto en archivo", e);
-                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+                showCustomToast("Error al guardar texto");
             }
         } else {
-            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+            showCustomToast("El almacenamiento externo no está disponible");
         }
     }
 
@@ -161,6 +175,8 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (textToSpeech != null) {

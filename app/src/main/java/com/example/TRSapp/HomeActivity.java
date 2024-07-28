@@ -7,7 +7,6 @@ import android.widget.ImageButton;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.database.DatabaseReference;
 
 public class HomeActivity extends AppCompatActivity {
     private static final int TEXT_CONFIG_REQUEST_CODE = 1;
