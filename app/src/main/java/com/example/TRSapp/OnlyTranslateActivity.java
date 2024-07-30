@@ -4,8 +4,10 @@ package com.example.TRSapp;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
 import android.view.View;
@@ -55,10 +57,15 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         speakButton = findViewById(R.id.speakButton);
         saveButton = findViewById(R.id.saveButton);
 
-        // Solicitar permisos de almacenamiento si no están concedidos
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, STORAGE_PERMISSION_REQUEST_CODE);
-        }
+        // Solicitar permisos de almacenamiento
+
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                    != PackageManager.PERMISSION_GRANTED) {
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                        STORAGE_PERMISSION_REQUEST_CODE);
+            }
+
 
         textToSpeech = new TextToSpeech(this, new TextToSpeech.OnInitListener() {
             @Override
@@ -135,6 +142,10 @@ public class OnlyTranslateActivity extends AppCompatActivity {
     }
 
     private void saveTextToFile(String text) {
+        if (text.isEmpty()) {
+            Toast.makeText(this, "El campo de texto está vacío. No se guardó ningún archivo.", Toast.LENGTH_SHORT).show();
+            return; // No proceder con el guardado si el texto está vacío
+        }
         if (isExternalStorageWritable()) {
             File path = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "TRS");
 
@@ -170,7 +181,7 @@ public class OnlyTranslateActivity extends AppCompatActivity {
            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 Toast.makeText(this, "Permiso de almacenamiento concedido", Toast.LENGTH_SHORT).show();
-            } else {
+            } else  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R){
                 Toast.makeText(this, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show();
             }
         }

@@ -265,10 +265,9 @@ public class MainActivity extends AppCompatActivity {
     private void initializeMediaPipe() {
         HandsOptions options = HandsOptions.builder()
                 .setMaxNumHands(2)
-                .setMinDetectionConfidence(0.99f)
-                .setMinTrackingConfidence(0.9f)
+                .setMinDetectionConfidence(0.75f) //saber si la mano es considerada valida
+                .setMinTrackingConfidence(0.75f)
                 .setModelComplexity(1)
-                .setRunOnGpu(true)
                 .build();
         imageAnalyzer.setHands(this, options);
     }
