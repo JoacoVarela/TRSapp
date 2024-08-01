@@ -27,6 +27,7 @@ import android.text.Editable;
 import android.text.InputType;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.ViewGroup;
 import android.view.inputmethod.EditorInfo;
@@ -34,6 +35,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 import android.widget.Toast;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import android.view.View;
@@ -72,13 +74,13 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-
         getElements();
         initializeUI();
         initializeTextToSpeech();
         initializeFirebase();
         initializeCameraManager();
         setupButtonListeners();
+        setupUI(mainLayout);
     }
 
     private void getElements() {
@@ -146,13 +148,7 @@ public class MainActivity extends AppCompatActivity {
         executorService = Executors.newSingleThreadExecutor();
         cameraManager = new CameraManager(previewView, imageAnalyzer::analyzeImage, executorService);
 
-        /*// Solicita permisos de cámara si no están concedidos
-        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
-        } else {
-            initializeCamera();
-        }*/
-        // Solicitar permisos de cámara y almacenamiento si no están concedidos
+        // Solicita permisos de cámara si no están concedidos
         if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED ||
                 ContextCompat.checkSelfPermission(this, android.Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this,
@@ -163,7 +159,6 @@ public class MainActivity extends AppCompatActivity {
             initializeCamera();
         }
     }
-
 
     private void setupButtonListeners() {
         speakButton.setOnClickListener(v -> {
@@ -241,15 +236,16 @@ public class MainActivity extends AppCompatActivity {
                 initializeCamera();
             } else {
                 // Permiso denegado, muestra un mensaje
-                Toast.makeText(this, "Cámara denegada. La aplicación no puede funcionar sin este permiso.", Toast.LENGTH_LONG).show();
+                showCustomToast( "Cámara denegada. La aplicación no puede funcionar sin este permiso.");
             }
         }
         if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permiso de almacenamiento concedido", Toast.LENGTH_SHORT).show();
+                showCustomToast("Permiso de almacenamiento concedido");
             } else {
-                Toast.makeText(this, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show();
+                showCustomToast("Permiso de almacenamiento denegado");
             }
+
         }
     }
 
@@ -265,8 +261,8 @@ public class MainActivity extends AppCompatActivity {
     private void initializeMediaPipe() {
         HandsOptions options = HandsOptions.builder()
                 .setMaxNumHands(2)
-                .setMinDetectionConfidence(0.75f) //saber si la mano es considerada valida
-                .setMinTrackingConfidence(0.75f)
+                .setMinDetectionConfidence(0.5f) //saber si la mano es considerada valida
+                .setMinTrackingConfidence(0.5f)
                 .setModelComplexity(1)
                 .build();
         imageAnalyzer.setHands(this, options);
@@ -331,7 +327,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void saveTextToFile(String text) {
         if (text.isEmpty()) {
-            Toast.makeText(this, "El campo de texto está vacío. No se guardó ningún archivo.", Toast.LENGTH_SHORT).show();
+            showCustomToast("El campo de texto está vacío. No se guardó ningún archivo.");
             return; // No proceder con el guardado si el texto está vacío
         }
         if (isExternalStorageWritable()) {
@@ -354,19 +350,32 @@ public class MainActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(text.getBytes());
                 fos.close();
-                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                showCustomToast("Texto guardado en " + file.getAbsolutePath());
             } catch (IOException e) {
                 Log.e("MainActivity", "Error al guardar texto en archivo", e);
-                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+                showCustomToast("Error al guardar texto");
             }
         } else {
-            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+            showCustomToast("El almacenamiento externo no está disponible");
         }
     }
 
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
+    }
+
+    private void showCustomToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.toast, findViewById(R.id.customToastText));
+
+        TextView textView = layout.findViewById(R.id.customToastText);
+        textView.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
     }
 
     @Override

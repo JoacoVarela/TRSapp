@@ -10,9 +10,9 @@ import android.os.Environment;
 import android.provider.Settings;
 import android.speech.tts.TextToSpeech;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -49,9 +49,12 @@ public class OnlyTranslateActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_only_translate); // Asegúrate de tener el layout correspondiente
+        setContentView(R.layout.activity_only_translate);
 
-        translatedTextView = findViewById(R.id.translatedTextView); // Asegúrate de que el ID coincida con el de tu layout
+        // Mostrar un mensaje Toast personalizado al iniciar la actividad
+        showCustomToast("Se necesita conexión a internet para el uso de esta funcionalidad");
+
+        translatedTextView = findViewById(R.id.translatedTextView);
         backButton = findViewById(R.id.backButton);
         cleanText = findViewById(R.id.cleanButton);
         speakButton = findViewById(R.id.speakButton);
@@ -111,12 +114,25 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         cleanText.setOnClickListener(v -> clearDatabase());
     }
 
+    private void showCustomToast(String message) {
+        LayoutInflater inflater = getLayoutInflater();
+        View layout = inflater.inflate(R.layout.toast, findViewById(R.id.customToastText));
+
+        TextView textView = layout.findViewById(R.id.customToastText);
+        textView.setText(message);
+
+        Toast toast = new Toast(getApplicationContext());
+        toast.setDuration(Toast.LENGTH_LONG);
+        toast.setView(layout);
+        toast.show();
+    }
+
     // Método para limpiar la base de datos
     private void clearDatabase() {
         myRef.setValue(null)
                 .addOnSuccessListener(aVoid -> {
                     Log.i("Firebase", "Datos limpiados exitosamente");
-                    // Limpia el EditText
+                    // Limpia el TextView
                     translatedTextView.setText("");
                 })
                 .addOnFailureListener(e -> Log.e("Firebase", "Error al limpiar datos", e));
@@ -129,7 +145,7 @@ public class OnlyTranslateActivity extends AppCompatActivity {
                 // Obtén el valor actualizado
                 String translatedText = dataSnapshot.getValue(String.class);
                 if (translatedText != null) {
-                    translatedTextView.setText(translatedText); // Actualiza el EditText con el nuevo texto
+                    translatedTextView.setText(translatedText); // Actualiza el TextView con el nuevo texto
                 }
             }
 
@@ -143,7 +159,7 @@ public class OnlyTranslateActivity extends AppCompatActivity {
 
     private void saveTextToFile(String text) {
         if (text.isEmpty()) {
-            Toast.makeText(this, "El campo de texto está vacío. No se guardó ningún archivo.", Toast.LENGTH_SHORT).show();
+            showCustomToast("El campo de texto está vacío. No se guardó ningún archivo.");
             return; // No proceder con el guardado si el texto está vacío
         }
         if (isExternalStorageWritable()) {
@@ -166,13 +182,13 @@ public class OnlyTranslateActivity extends AppCompatActivity {
                 FileOutputStream fos = new FileOutputStream(file);
                 fos.write(text.getBytes());
                 fos.close();
-                Toast.makeText(this, "Texto guardado en " + file.getAbsolutePath(), Toast.LENGTH_LONG).show();
+                showCustomToast("Texto guardado en " + file.getAbsolutePath());
             } catch (IOException e) {
                 Log.e("MainActivity", "Error al guardar texto en archivo", e);
-                Toast.makeText(this, "Error al guardar texto", Toast.LENGTH_SHORT).show();
+                showCustomToast("Error al guardar texto");
             }
         } else {
-            Toast.makeText(this, "El almacenamiento externo no está disponible", Toast.LENGTH_SHORT).show();
+            showCustomToast("El almacenamiento externo no está disponible");
         }
     }
     @Override
@@ -180,16 +196,19 @@ public class OnlyTranslateActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
            if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(this, "Permiso de almacenamiento concedido", Toast.LENGTH_SHORT).show();
+                showCustomToast("Permiso de almacenamiento concedido");
             } else  if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R){
-                Toast.makeText(this, "Permiso de almacenamiento denegado", Toast.LENGTH_SHORT).show();
+                showCustomToast("Permiso de almacenamiento denegado");
             }
         }
     }
+
     private boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
+
+    @Override
     protected void onDestroy() {
         super.onDestroy();
         if (textToSpeech != null) {

@@ -51,7 +51,7 @@ public class ImageAnalyzer {
     private static final int NO_HAND_DETECTED_THRESHOLD = 4; // Umbral para agregar un espacio
 
     private int frameCounter = 0; // Contador de frames
-    private int inferenceInterval = 2; // Intervalo de inferencia (ajustable)
+    private int inferenceInterval = 3; // Intervalo de inferencia (ajustable)
     private int twoHandsDetectionCount = 0;
     private static final int TWO_HANDS_DETECTION_THRESHOLD =2; // Número de frames consecutivos con detección de dos manos
 
@@ -182,56 +182,88 @@ public class ImageAnalyzer {
 
     public void analyzeImage(@NonNull ImageProxy image) {
         if (shouldProcessFrames) {
-            if (framesToSkip > 0) {
-                secuenciaKeypointsUnaMano.clear();
-                secuenciaKeypointsDosManos.clear();
-                framesToSkip--;
-                image.close();
-                return;
-            }
+            if (skipFramesIfNeeded(image)) return;
+
             Bitmap bitmap = convertImageProxyToBitmap(image);
             if (bitmap != null) {
-                long timestamp = image.getImageInfo().getTimestamp();
-                hands.send(bitmap, timestamp);
-                hands.setResultListener(handsResult -> {
-                    int handCount = handsResult.multiHandLandmarks().size();
-                    if (handCount == 1) {
-                        twoHandsDetectionCount = 0; // Resetear el contador si se detecta una sola mano
-                        // Limpiar el buffer de dos manos si se detecta una sola mano después de detectar dos manos
-                        if (!secuenciaKeypointsDosManos.isEmpty() && secuenciaKeypointsDosManos.size()>=16) {
-                            // Obtener el último frame de la secuencia de dos manos
-                            List<Keypoint> lastFrame = secuenciaKeypointsDosManos.get(secuenciaKeypointsDosManos.size() - 1);
-
-                            // Copiar el último frame hasta completar 20 frames
-                            while (secuenciaKeypointsDosManos.size() < 20) {
-                                secuenciaKeypointsDosManos.add(new ArrayList<>(lastFrame));
-                            }
-
-                            // Realizar la inferencia con la secuencia completada
-                            doInference(tfliteTwoHands, CLASS_NAMES1, lastFrame, 42, secuenciaKeypointsDosManos);
-                        }
-                        List<Keypoint> keypoints = extractKeypoints(handsResult);
-                        if (keypoints != null) {
-                            processSingleHand(keypoints);
-                        }
-                    } else if (handCount == 2 && handsResult.multiHandLandmarks().get(1).getLandmarkList().get(0).getX() > 0.0) {
-                        twoHandsDetectionCount++;
-                        if (twoHandsDetectionCount >= TWO_HANDS_DETECTION_THRESHOLD) {
-                            List<List<Keypoint>> keypointsBothHands = extractKeypointsForTwoHands(handsResult);
-                            if (keypointsBothHands != null) {
-                                processTwoHands(keypointsBothHands);
-                            }
-                        }
-                    } else {
-                        // Si no se detecta una mano
-                        handleNoHandsDetected();
-                        twoHandsDetectionCount = 0;
-                    }
-                });
+                processBitmap(bitmap, image);
             }
         }
         image.close();
     }
+
+    private boolean skipFramesIfNeeded(ImageProxy image) {
+        if (framesToSkip > 0) {
+            secuenciaKeypointsUnaMano.clear();
+            secuenciaKeypointsDosManos.clear();
+            framesToSkip--;
+            image.close();
+            return true;
+        }
+        return false;
+    }
+
+    private void processBitmap(Bitmap bitmap, ImageProxy image) {
+        long timestamp = image.getImageInfo().getTimestamp();
+        hands.send(bitmap, timestamp);
+        hands.setResultListener(this::handleHandsResult);
+    }
+
+    private void handleHandsResult(HandsResult handsResult) {
+        int handCount = handsResult.multiHandLandmarks().size();
+        if (shouldSkipFramesForDetectedHands(handCount)) return;
+
+        if (handCount == 1) {
+            handleSingleHand(handsResult);
+        } else if (handCount == 2 && isSecondHandValid(handsResult)) {
+            handleTwoHands(handsResult);
+        } else {
+            handleNoHandsDetected();
+        }
+    }
+
+    private boolean shouldSkipFramesForDetectedHands(int handCount) {
+        if (noHandDetectedCount > NO_HAND_DETECTED_THRESHOLD && handCount > 0) {
+            framesToSkip = 4;
+            noHandDetectedCount = 0;
+            return true;
+        }
+        return false;
+    }
+
+    private void handleSingleHand(HandsResult handsResult) {
+        twoHandsDetectionCount = 0;
+        if (!secuenciaKeypointsDosManos.isEmpty() && secuenciaKeypointsDosManos.size() >= 16) {
+            completeAndInferTwoHandsSequence();
+        }
+        List<Keypoint> keypoints = extractKeypoints(handsResult);
+        if (keypoints != null) {
+            processSingleHand(keypoints);
+        }
+    }
+
+    private void completeAndInferTwoHandsSequence() {
+        List<Keypoint> lastFrame = secuenciaKeypointsDosManos.get(secuenciaKeypointsDosManos.size() - 1);
+        while (secuenciaKeypointsDosManos.size() < 20) {
+            secuenciaKeypointsDosManos.add(new ArrayList<>(lastFrame));
+        }
+        doInference(tfliteTwoHands, CLASS_NAMES1, lastFrame, 42, secuenciaKeypointsDosManos);
+    }
+
+    private boolean isSecondHandValid(HandsResult handsResult) {
+        return handsResult.multiHandLandmarks().get(1).getLandmarkList().get(0).getX() > 0.0;
+    }
+
+    private void handleTwoHands(HandsResult handsResult) {
+        twoHandsDetectionCount++;
+        if (twoHandsDetectionCount >= TWO_HANDS_DETECTION_THRESHOLD) {
+            List<List<Keypoint>> keypointsBothHands = extractKeypointsForTwoHands(handsResult);
+            if (keypointsBothHands != null) {
+                processTwoHands(keypointsBothHands);
+            }
+        }
+    }
+
 
 
 
@@ -306,7 +338,7 @@ public class ImageAnalyzer {
             printKeypoints(keypointsBothHands.get(1), "mano izquierda");
 
             frameCounter++;
-            if (frameCounter % 3 == 0) { // Realizar inferencia cada 'inferenceInterval' frames
+            if (frameCounter % inferenceInterval == 0) { // Realizar inferencia cada 'inferenceInterval' frames
                 doInference(tfliteTwoHands, CLASS_NAMES1, combinedKeypoints, 42, secuenciaKeypointsDosManos);
                 frameCounter = 0;
             }
@@ -326,16 +358,16 @@ public class ImageAnalyzer {
             secuenciaKeypointsDosManos.clear();
             activity.runOnUiThread(() -> {
                 if (resultTextView.getText().length() > 0) {
-
-                    framesToSkip = 3;
-
                     char lastCharacter = resultTextView.getText().toString().charAt(resultTextView.getText().toString().length() - 1);
-                    if (lastCharacter != ' ') {
+                    framesToSkip = 6;
+                    if (lastCharacter != ' ' && !resultTextView.hasFocus()) {
                         resultTextView.append(" ");
+                        framesToSkip = 6;
                     }
                 }
             });
             noHandDetectedCount = 0; // Resetear el contador después de agregar el espacio
+
         }
     }
 
@@ -452,8 +484,6 @@ public class ImageAnalyzer {
     private void actualizarUI(float confidence, String finalResultText) {
         if (confidence > 0.60) {
 
-            framesToSkip = 18;
-
             if (finalResultText != null && !finalResultText.isEmpty()) {
                 if (resultTextView.getText().length() == 0) {
                     resultTextView.append(finalResultText);
@@ -465,6 +495,7 @@ public class ImageAnalyzer {
                     }
                 }
             }
+            framesToSkip = 16;
             secuenciaKeypointsUnaMano.clear();
             secuenciaKeypointsDosManos.clear();
 
