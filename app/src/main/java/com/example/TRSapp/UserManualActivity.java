@@ -1,3 +1,4 @@
+// Modulo encargado de cargar la data del manual de usuario
 package com.example.TRSapp;
 
 import android.content.Intent;

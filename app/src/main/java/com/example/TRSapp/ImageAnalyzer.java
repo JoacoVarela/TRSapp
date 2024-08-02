@@ -1,3 +1,4 @@
+// modulo encargado de analizar las imagenes
 package com.example.TRSapp;
 
 import androidx.annotation.NonNull;
@@ -30,30 +31,26 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class ImageAnalyzer {
+    private static final String[] CLASS_NAMES = {"A", "B", "C", "CH", "D", "E", "F", "G", "H","I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P", "Q", "R", "RR","S", "T", "U", "V", "W", "X", "Y", "Z"};
+    private static final String[] CLASS_NAMES1 = {  "bienvenidos", "buenos dias ", "compañeros ", "estudiantes ", "muchas gracias "};
+    private static final int NO_HAND_DETECTED_THRESHOLD = 4; // Umbral para agregar un espacio
+    private static final int TWO_HANDS_DETECTION_THRESHOLD =2; // Número de frames consecutivos con detección de dos manos
     private Interpreter tflite;
     private Interpreter tfliteTwoHands;
     private Activity activity;
     private List<List<Keypoint>> secuenciaKeypointsUnaMano = new LinkedList<>();
     private List<List<Keypoint>> secuenciaKeypointsDosManos = new LinkedList<>();
-    private static final String[] CLASS_NAMES = {"A", "B", "C", "CH", "D", "E", "F", "G", "H","I", "J", "K", "L", "LL", "M", "N", "NI", "O", "P", "Q", "R", "RR","S", "T", "U", "V", "W", "X", "Y", "Z"};
-    private static final String[] CLASS_NAMES1 = {  "bienvenidos", "buenos dias ", "compañeros ", "estudiantes ", "muchas gracias "};
     private Hands hands;
     private TextView resultTextView;
-
     private List<Keypoint> prevKeypoints = null;
     private List<Keypoint> lastKeypoints = null;
-
     private int framesToSkip = 0;
-
     private boolean shouldProcessFrames = true;
     private int activeCamera;
     private int noHandDetectedCount = 0; // Contador de frames sin detección de manos
-    private static final int NO_HAND_DETECTED_THRESHOLD = 4; // Umbral para agregar un espacio
-
     private int frameCounter = 0; // Contador de frames
     private int inferenceInterval = 3; // Intervalo de inferencia (ajustable)
     private int twoHandsDetectionCount = 0;
-    private static final int TWO_HANDS_DETECTION_THRESHOLD =2; // Número de frames consecutivos con detección de dos manos
 
 
     public ImageAnalyzer(Interpreter tflite, Interpreter tfliteTwoHands, Activity activity, TextView resultTextView) {
