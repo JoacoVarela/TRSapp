@@ -12,8 +12,6 @@ public class HomeActivity extends AppCompatActivity {
     private static final int TEXT_CONFIG_REQUEST_CODE = 1;
     private TextConfig textConfig;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
